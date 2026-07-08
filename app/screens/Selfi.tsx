@@ -343,17 +343,23 @@ export default function SelfieCapture() {
             <View style={styles.buttonsRow}>
               {captureStep === 'done' ? (
                 <TouchableOpacity 
-                  style={[styles.actionButton, styles.successButton]} 
                   onPress={handleContinue}
                   disabled={loading}
-                  activeOpacity={0.8}
+                  activeOpacity={0.9}
                 >
-                  <SealCheckIcon size={24} color="#059669" weight="fill" />
-                  {loading ? (
-                    <ActivityIndicator size="small" color="#059669" />
-                  ) : (
-                    <Text style={styles.successButtonText}>Finish Check-in</Text>
-                  )}
+                  <LinearGradient
+                    colors={Theme.colors.gradients.success}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.actionButton}
+                  >
+                    <SealCheckIcon size={24} color="#FFFFFF" weight="fill" />
+                    {loading ? (
+                      <ActivityIndicator size="small" color="#FFFFFF" />
+                    ) : (
+                      <Text style={styles.successButtonText}>Finish Check-in</Text>
+                    )}
+                  </LinearGradient>
                 </TouchableOpacity>
               ) : (
                 <>
@@ -679,7 +685,7 @@ const styles = StyleSheet.create({
   successButtonText: {
     fontFamily: Theme.typography.fontFamily.semiBold,
     fontSize: Theme.typography.sizes.h3,
-    color: "#059669",
+    color: "#FFFFFF",
   },
   modalOverlay: {
     flex: 1,

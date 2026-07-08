@@ -1,7 +1,8 @@
 import OwingCard from "@/components/ui/attendence/OwingCard";
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, BackHandler, Image, ActivityIndicator, Modal, TextInput } from "react-native";
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, BackHandler, Image, ActivityIndicator, Modal, TextInput, KeyboardAvoidingView, Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets, SafeAreaView } from "react-native-safe-area-context";
+import { router } from "expo-router";
 import { Theme } from "@/constants/Theme";
 import { useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/axios/axios";
@@ -37,7 +38,7 @@ export default function Checkout() {
     },
     onSuccess: () => {
       Alert.alert("Success", "Checkout successful");
-      BackHandler.exitApp();
+      router.replace("/(tabs)");
     },
     onError: (error: ErrorResponse) => {
       Alert.alert("Error", error.response.data.message);
@@ -280,7 +281,10 @@ export default function Checkout() {
           transparent
           onRequestClose={() => setOdometerReadingModalVisible(false)}
         >
-          <View style={styles.modalOverlay}>
+          <KeyboardAvoidingView 
+            style={styles.modalOverlay} 
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+          >
             <LinearGradient
               colors={["rgba(15, 23, 42, 0.4)", "rgba(15, 23, 42, 0.8)"]}
               style={StyleSheet.absoluteFill}
@@ -316,7 +320,7 @@ export default function Checkout() {
                 </Text>
               </TouchableOpacity>
             </View>
-          </View>
+          </KeyboardAvoidingView>
         </Modal>
       )}
 

@@ -244,14 +244,13 @@ export default function CustomerAction() {
       />
 
       <StepWizard steps={steps} currentStep={currentStep} />
-      {/* 
       <KeyboardAvoidingView
-        style={styles.contentContainer}
+        style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={100}
-      > */}
-      {renderCurrentStep()}
-      {/* </KeyboardAvoidingView> */}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+      >
+        {renderCurrentStep()}
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

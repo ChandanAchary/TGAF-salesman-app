@@ -1,6 +1,7 @@
 import { Href, router } from "expo-router";
 import { CaretLeft, House } from "phosphor-react-native";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import WifiButtonSmall from "../WifiButtonSmall";
 import { Theme } from "@/constants/Theme";
 
@@ -13,6 +14,7 @@ interface TabBarProps {
 }
 
 export default function TabBar({ title, customLink, children, opacity, showHomeButton = true }: TabBarProps) {
+  const insets = useSafeAreaInsets();
   
   const handleBack = () => {
     if (customLink) {
@@ -31,7 +33,7 @@ export default function TabBar({ title, customLink, children, opacity, showHomeB
   return (
     <View style={[
       styles.headerBar, 
-      { opacity: opacity ?? 1 }
+      { opacity: opacity ?? 1, paddingTop: insets.top > 0 ? insets.top + 6 : 14 }
     ]}>
       <View style={styles.topRow}>
         

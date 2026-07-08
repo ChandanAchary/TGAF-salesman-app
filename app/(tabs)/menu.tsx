@@ -5,6 +5,7 @@ import {
   ScrollView,
   Dimensions,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import { Entypo, MaterialIcons, FontAwesome5, Feather } from "@expo/vector-icons";
 import { Theme } from "@/constants/Theme";
@@ -63,25 +64,25 @@ export default function Menu() {
       icon: <MaterialIcons name="event-available" size={24} color="#075985" />,
       colors: ["#E0F2FE", "#F0F9FF"],
       label: "Attendance",
-      onPress: () => { router.replace("/screens/checkin") },
+      onPress: () => { router.push("/screens/checkin?fromMenu=true") },
     },
     {
       icon: <MaterialIcons name="history" size={24} color="#6B21A8" />,
       colors: ["#F3E8FF", "#FAF5FF"],
       label: "Check-in History",
-      onPress: () => { },
+      onPress: () => { Alert.alert("Coming Soon", "Check-in History feature is coming soon!"); },
     },
     {
       icon: <MaterialIcons name="work" size={24} color="#374151" />,
       colors: ["#E5E7EB", "#F3F4F6"],
       label: "Assets & Rentals",
-      onPress: () => { },
+      onPress: () => { Alert.alert("Coming Soon", "Assets & Rentals feature is coming soon!"); },
     },
     {
       icon: <MaterialIcons name="notifications" size={24} color="#991B1B" />,
       colors: ["#FEE2E2", "#FEF2F2"],
       label: "Notifications",
-      onPress: () => { },
+      onPress: () => { router.push('/screens/salesman/notification') },
     },
     {
       icon: <Entypo name="map" size={24} color="#065F46" />,

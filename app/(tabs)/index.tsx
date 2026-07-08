@@ -209,8 +209,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    marginTop: 8,
+    marginTop: 12,
     marginBottom: -4,
+    borderLeftWidth: 3,
+    borderLeftColor: Theme.colors.primary,
+    paddingLeft: 8,
   },
   sectionHeaderText: {
     fontFamily: Theme.typography.fontFamily.semiBold,

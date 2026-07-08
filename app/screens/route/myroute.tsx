@@ -159,8 +159,22 @@ export default function MyRouteScreen() {
   const routeQuery = useQuery({
     queryKey: ["route"],
     queryFn: async () => {
-      const res = await api.get<RouteResponse>(API_ROUTES.ROUTE.GET_ROUTE);
-      return res.data;
+      try {
+        const res = await api.get<RouteResponse>(API_ROUTES.ROUTE.GET_ROUTE);
+        return res.data;
+      } catch (err: any) {
+        if (err.response?.status === 400 && err.response?.data?.message === "Route not found") {
+          return {
+            success: true,
+            message: "No route assigned",
+            data: {
+              route: undefined,
+              customers: []
+            }
+          };
+        }
+        throw err;
+      }
     },
   });
 
@@ -342,48 +356,47 @@ export default function MyRouteScreen() {
       <TabBar title="ROUTE PLAN" />
 
       {/* Mission Dashboard Card */}
-      <View style={styles.dashboardCard}>
-        <ImageBackground
-          source={require("@/assets/images/home_bg.png")}
-          style={styles.dashboardBackground}
-          imageStyle={{ borderRadius: 16 }}
-        >
-          <View style={styles.dashboardHeader}>
-            <View>
-              <Text style={styles.dashboardTitle} numberOfLines={1}>
-                {routeQuery.data?.data.route.name || "Daily Route"}
-              </Text>
-            </View>
-            <View style={styles.completionBadge}>
-              <Text style={styles.completionText}>{completionPercentage}% Completed</Text>
-            </View>
+      <LinearGradient
+        colors={Theme.colors.gradients.primary}
+        style={styles.dashboardCard}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      >
+        <View style={styles.dashboardHeader}>
+          <View>
+            <Text style={styles.dashboardTitle} numberOfLines={1}>
+              {routeQuery.data?.data.route.name || "Daily Route"}
+            </Text>
           </View>
+          <View style={styles.completionBadge}>
+            <Text style={styles.completionText}>{completionPercentage}% Completed</Text>
+          </View>
+        </View>
 
-          {/* Progress Bar */}
-          <View style={styles.xpBarContainer}>
-            <View style={styles.xpBarBackground}>
-              <View style={[styles.xpBarFill, { width: `${completionPercentage}%` }]} />
-            </View>
+        {/* Progress Bar */}
+        <View style={styles.xpBarContainer}>
+          <View style={styles.xpBarBackground}>
+            <View style={[styles.xpBarFill, { width: `${completionPercentage}%` }]} />
           </View>
+        </View>
 
-          <View style={styles.statsGrid}>
-            <View style={styles.statBox}>
-              <Text style={styles.statValueLight}>{customersWithDistance.length}</Text>
-              <Text style={styles.statLabelLight}>Total</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statBox}>
-              <Text style={styles.statValueLight}>{visitedCustomerIds.size}</Text>
-              <Text style={styles.statLabelLight}>Visited</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statBox}>
-              <Text style={styles.statValueLight}>{orderedCustomerIds.size}</Text>
-              <Text style={styles.statLabelLight}>Orders</Text>
-            </View>
+        <View style={styles.statsGrid}>
+          <View style={styles.statBox}>
+            <Text style={styles.statValueLight}>{customersWithDistance.length}</Text>
+            <Text style={styles.statLabelLight}>Total</Text>
           </View>
-        </ImageBackground>
-      </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statBox}>
+            <Text style={styles.statValueLight}>{visitedCustomerIds.size}</Text>
+            <Text style={styles.statLabelLight}>Visited</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statBox}>
+            <Text style={styles.statValueLight}>{orderedCustomerIds.size}</Text>
+            <Text style={styles.statLabelLight}>Orders</Text>
+          </View>
+        </View>
+      </LinearGradient>
 
       {/* Search & Filter Section */}
       <View style={styles.controlsSection}>
@@ -735,13 +748,8 @@ const styles = StyleSheet.create({
     margin: 16,
     borderRadius: Theme.radius.xl,
     overflow: 'hidden',
-    backgroundColor: 'white',
-    borderWidth: 1,
-    borderColor: Theme.colors.border,
-    ...Theme.shadows.md,
-  },
-  dashboardBackground: {
     padding: 20,
+    ...Theme.shadows.lg,
   },
   dashboardHeader: {
     flexDirection: 'row',
@@ -752,25 +760,24 @@ const styles = StyleSheet.create({
   dashboardTitle: {
     fontFamily: Theme.typography.fontFamily.bold,
     fontSize: Theme.typography.sizes.h3,
-    color: '#0F172A',
-    backgroundColor: 'rgba(255,255,255,0.7)',
+    color: '#FFFFFF',
+    backgroundColor: 'rgba(255,255,255,0.15)',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: Theme.radius.sm,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.9)',
+    borderColor: 'rgba(255,255,255,0.2)',
   },
   completionBadge: {
-    backgroundColor: 'rgba(255,255,255,0.85)',
+    backgroundColor: 'rgba(255,255,255,0.2)',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: Theme.radius.sm,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.95)',
-    ...Theme.shadows.sm,
+    borderColor: 'rgba(255,255,255,0.3)',
   },
   completionText: {
-    color: Theme.colors.text.primary,
+    color: '#FFFFFF',
     fontFamily: Theme.typography.fontFamily.bold,
     fontSize: Theme.typography.sizes.caption,
   },
@@ -780,24 +787,24 @@ const styles = StyleSheet.create({
   },
   xpBarBackground: {
     height: 8,
-    backgroundColor: 'rgba(0,0,0,0.06)',
+    backgroundColor: 'rgba(255,255,255,0.2)',
     borderRadius: Theme.radius.full,
     overflow: 'hidden',
   },
   xpBarFill: {
     height: '100%',
-    backgroundColor: Theme.colors.primary,
+    backgroundColor: '#FFFFFF',
     borderRadius: Theme.radius.full,
   },
   statsGrid: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: 'rgba(255,255,255,0.6)',
+    backgroundColor: 'rgba(255,255,255,0.1)',
     borderRadius: Theme.radius.md,
     padding: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.8)',
+    borderColor: 'rgba(255,255,255,0.15)',
   },
   statBox: {
     alignItems: 'center',

@@ -25,6 +25,14 @@ export const Theme = {
     },
     glass: "rgba(255, 255, 255, 0.75)",
     glassDark: "rgba(15, 23, 42, 0.75)",
+    gradients: {
+      primary: ["#0045F4", "#0B72FF", "#6366F1"],
+      success: ["#059669", "#10B981", "#34D399"],
+      warning: ["#D97706", "#F59E0B", "#FBBF24"],
+      danger: ["#DC2626", "#EF4444", "#F87171"],
+      dark: ["#0F172A", "#1E293B", "#334155"],
+      glass: ["rgba(255, 255, 255, 0.15)", "rgba(255, 255, 255, 0.05)"],
+    }
   },
   spacing: {
     xs: 4,

@@ -6,7 +6,7 @@ import { getLocation } from "@/lib/location/location";
 import { CreateCustomerParams, GetOtpParams, VerifyOtpParams } from "@/shared/zod";
 import { useUserStore } from "@/store";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, KeyboardAvoidingView, Platform } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { useEffect, useState } from "react";
 import { ImageSquare, Storefront } from "phosphor-react-native";
@@ -19,6 +19,7 @@ import { User } from "@/lib/user/util";
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 
 interface CustomerType {
   id: string;
@@ -66,17 +67,17 @@ export default function Store() {
       const res = await api.get<CustomerTypeQueryData>(API_ROUTES.CUSTOMER.GET_CUSTOMER_TYPE);
       return res.data.data;
     },
-    refetchOnWindowFocus: true,
+    staleTime: 5 * 60 * 1000, // Keep cached data stale-free for 5 minutes to prevent refetches on mount/focus
   });
 
   useEffect(() => {
-    if (customerTypeQuery.data && customerTypeQuery.data.length > 0) {
+    if (customerTypeQuery.data && customerTypeQuery.data.length > 0 && !customerTypeId) {
       setCustomerTypeId(customerTypeQuery.data[0].id);
     }
     if (customerTypeQuery.error) {
       errorHandler(customerTypeQuery.error);
     }
-  }, [customerTypeQuery.data, customerTypeQuery.error]);
+  }, [customerTypeQuery.data, customerTypeQuery.error, customerTypeId]);
 
   const createCustomerMutation = useMutation({
     mutationFn: async (data: CreateCustomerParams) => {
@@ -235,10 +236,16 @@ export default function Store() {
         </View>
       </ModalView>
 
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
         {/* Header Block */}
         <View style={styles.header}>
           <View>
@@ -401,7 +408,6 @@ export default function Store() {
                       <Picker.Item
                         label="Select customer type..."
                         value=""
-                        style={{ color: Theme.colors.text.muted }}
                       />
                       {customerTypeQuery.data.map((customerType) => (
                         <Picker.Item
@@ -481,22 +487,31 @@ export default function Store() {
             disabled={loading}
             onPress={handleAddStore}
             style={({ pressed }) => [
-              styles.submitButton,
               {
                 opacity: pressed ? 0.85 : 1,
                 transform: [{ scale: pressed ? 0.98 : 1 }],
+                width: '100%',
+                marginTop: 10,
               },
             ]}
           >
-            {loading ? (
-              <ActivityIndicator color="white" />
-            ) : (
-              <Text style={styles.submitButtonText}>Register Outlet</Text>
-            )}
+            <LinearGradient
+              colors={Theme.colors.gradients.primary}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.submitButton}
+            >
+              {loading ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <Text style={styles.submitButtonText}>Register Outlet</Text>
+              )}
+            </LinearGradient>
           </Pressable>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </KeyboardAvoidingView>
+  </SafeAreaView>
   );
 }
 
@@ -626,8 +641,6 @@ const styles = StyleSheet.create({
   },
   inputWrapperFocused: {
     borderColor: Theme.colors.primary,
-    backgroundColor: Theme.colors.surface,
-    ...Theme.shadows.sm,
   },
   input: {
     fontFamily: Theme.typography.fontFamily.regular,
@@ -664,13 +677,11 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   submitButton: {
-    backgroundColor: Theme.colors.primary,
     padding: 16,
     width: '100%',
     borderRadius: Theme.radius.lg,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 10,
     ...Theme.shadows.md,
   },
   submitButtonText: {

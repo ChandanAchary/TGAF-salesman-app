@@ -3,7 +3,7 @@ import WifiButton from "@/components/ui/WifiButton";
 import { useEffect, useState } from "react";
 import { Theme } from "@/constants/Theme";
 import { useIsOnline } from "@/hooks/useIsOnline";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { formatDate } from "@/lib/date/dateFormater";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/axios/axios";
@@ -34,6 +34,7 @@ export interface myDataQuery {
 }
 
 export default function Checkin() {
+  const { fromMenu } = useLocalSearchParams();
   const startPoint = "HOME";
   const isOnline = useIsOnline();
   const router = useRouter();
@@ -111,9 +112,13 @@ export default function Checkin() {
 
   useEffect(() => {
     if (checkinCheckQuery.data?.data && myDetailsQuery.data?.data && checkinCheckQuery.isSuccess && myDetailsQuery.isSuccess) {
-      router.replace("/(tabs)");
+      if (fromMenu === "true") {
+        router.replace("/screens/checkout");
+      } else {
+        router.replace("/(tabs)");
+      }
     }
-  }, [checkinCheckQuery.data, myDetailsQuery.data]);
+  }, [checkinCheckQuery.data, myDetailsQuery.data, fromMenu]);
 
   if (checkinCheckQuery.isLoading || myDetailsQuery.isLoading) {
     return (
@@ -133,8 +138,10 @@ export default function Checkin() {
     return (
       <View style={{ flex: 1 }}>
         <LinearGradient
-          colors={[Theme.colors.primaryDark, Theme.colors.primary, "#1E1E2E"]}
+          colors={Theme.colors.gradients.primary}
           style={StyleSheet.absoluteFill}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
         />
         <SafeAreaView style={{ flex: 1 }}>
           <View style={styles.container}>
@@ -162,12 +169,17 @@ export default function Checkin() {
                 <WifiButton />
               </View>
             </View>
-
+ 
             {/* Date Time Dashboard Card */}
-            <View style={styles.dateTimeCard}>
+            <LinearGradient
+              colors={["rgba(255, 255, 255, 0.16)", "rgba(255, 255, 255, 0.05)"]}
+              style={styles.dateTimeCard}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
               <Text style={styles.timeText}>{timeOnly}</Text>
               <Text style={styles.dateText}>{fullDate}</Text>
-            </View>
+            </LinearGradient>
 
             {/* Main Content */}
             <View style={styles.content}>

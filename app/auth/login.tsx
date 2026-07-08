@@ -89,7 +89,7 @@ export default function LoginScreen() {
       >
         {/* Header Gradient background */}
         <LinearGradient
-          colors={[Theme.colors.primaryDark, Theme.colors.primary, Theme.colors.accent]}
+          colors={Theme.colors.gradients.primary}
           style={styles.headerGradient}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
@@ -186,19 +186,22 @@ export default function LoginScreen() {
 
             {/* Login Button */}
             <TouchableOpacity
-              style={[
-                styles.loginButton,
-                loginMutation.status === "pending" && styles.loginButtonDisabled
-              ]}
               onPress={handleLogin}
               disabled={loginMutation.status === "pending"}
-              activeOpacity={0.8}
+              activeOpacity={0.9}
             >
-              {loginMutation.status === "pending" ? (
-                <ActivityIndicator color="#fff" size="small" />
-              ) : (
-                <Text style={styles.loginButtonText}>Sign In</Text>
-              )}
+              <LinearGradient
+                colors={loginMutation.status === "pending" ? ["#93C5FD", "#60A5FA"] : Theme.colors.gradients.primary}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.loginButton}
+              >
+                {loginMutation.status === "pending" ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <Text style={styles.loginButtonText}>Sign In</Text>
+                )}
+              </LinearGradient>
             </TouchableOpacity>
           </View>
         </View>
@@ -312,8 +315,6 @@ const styles = StyleSheet.create({
   },
   inputContainerFocused: {
     borderColor: Theme.colors.primary,
-    backgroundColor: "#FFFFFF",
-    ...Theme.shadows.sm,
   },
   inputIcon: {
     marginRight: 12,
@@ -345,7 +346,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   loginButton: {
-    backgroundColor: Theme.colors.primary,
     borderRadius: Theme.radius.md,
     height: 54,
     justifyContent: "center",
