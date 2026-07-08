@@ -2,13 +2,15 @@ import { API_ROUTES } from "@/constants/ApiRoutes";
 import { api } from "@/lib/axios/axios";
 import { useQuery } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
-import { StyleSheet, View, Text, ActivityIndicator, ScrollView, Pressable, TouchableOpacity, Animated, Easing } from "react-native";
+import { StyleSheet, View, Text, ActivityIndicator, ScrollView, Pressable, TouchableOpacity, Animated, Easing, Modal } from "react-native";
 import { MaterialIcons } from '@expo/vector-icons';
 import { primary } from "@/constants/Colors";
 import { salesmanType } from "@/shared/zod";
 import Avatar from "@/components/lazy/Avatar";
 import { User } from "@/lib/user/util";
-import { useUserStore } from "@/store";
+import { useUserStore, useThemeStore } from "@/store";
+import { Theme, useAppTheme } from "@/constants/Theme";
+import TabBar from "@/components/ui/layout/TabBar";
 import { LinearGradient } from 'expo-linear-gradient';
 import SalesmanEditModal from "@/components/ui/salesman/salesmanEditModal";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -64,6 +66,10 @@ const SalesmanTypeBadge = ({ type }: { type: myDataQuery['salesmanType'] }) => {
 
 export default function SalesmanProfile() {
   const setUser = useUserStore((state) => state.setUser);
+  const themeMode = useThemeStore((state) => state.themeMode);
+  const setTheme = useThemeStore((state) => state.setTheme);
+  const { colors } = useAppTheme();
+  const isDark = themeMode === 'dark';
   const { data, isLoading, error, refetch, isSuccess } = useQuery<{ success: boolean, message: string, data: myDataQuery }>({
     queryKey: ["myDetails"],
     queryFn: async () => {
@@ -104,6 +110,7 @@ export default function SalesmanProfile() {
 
   // Modal and form state
   const [modalVisible, setModalVisible] = useState(false);
+  const [previewVisible, setPreviewVisible] = useState(false);
   const [form, setForm] = useState<Partial<myDataQuery>>({});
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const [addressProofUri, setAddressProofUri] = useState<string | null>(null);
@@ -150,9 +157,10 @@ export default function SalesmanProfile() {
   const salesman = data?.data;
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <TabBar title="Profile" showHomeButton={true} />
       <LinearGradient
-        colors={['#F8F9FF', '#EFF1FF']}
+        colors={isDark ? ['#1E293B', '#0F172A'] : ['#F8F9FF', '#EFF1FF']}
         style={styles.background}
       >
         <ScrollView contentContainerStyle={styles.container}>
@@ -161,27 +169,43 @@ export default function SalesmanProfile() {
               styles.profileCard,
               {
                 opacity: fadeAnim,
-                transform: [{ translateY: slideUpAnim }]
+                transform: [{ translateY: slideUpAnim }],
+                backgroundColor: colors.surface,
               }
             ]}
           >
             {/* Profile Header */}
             <LinearGradient
-              colors={[primary, '#2563EB']}
+              colors={isDark ? ['#334155', '#1E293B'] : [primary, '#2563EB']}
               style={styles.profileHeader}
             >
-              <View style={styles.avatarContainer}>
-                <Avatar
-                  src={salesman?.avatar}
-                  alt={salesman?.name}
-                  size={120}
-                  textStyle={{ fontSize: 48 }}
+              {/* Theme toggle icon button on the top right */}
+              <TouchableOpacity
+                onPress={() => setTheme(isDark ? 'light' : 'dark')}
+                style={styles.themeToggleIconButton}
+                activeOpacity={0.7}
+              >
+                <MaterialIcons
+                  name={isDark ? "light-mode" : "dark-mode"}
+                  size={20}
+                  color="#FFFFFF"
                 />
+              </TouchableOpacity>
+
+              <View style={styles.avatarContainer}>
+                <Pressable onPress={() => setPreviewVisible(true)}>
+                  <Avatar
+                    src={salesman?.avatar}
+                    alt={salesman?.name}
+                    size={120}
+                    textStyle={{ fontSize: 48 }}
+                  />
+                </Pressable>
                 <Pressable
                   onPress={openEditModal}
-                  style={styles.editButton}
+                  style={[styles.editButton, { backgroundColor: colors.surface }]}
                 >
-                  <MaterialIcons name="edit" size={18} color={"#6C63FF"} />
+                  <MaterialIcons name="edit" size={18} color={colors.primary} />
                 </Pressable>
               </View>
 
@@ -196,43 +220,43 @@ export default function SalesmanProfile() {
             </LinearGradient>
 
             {/* Details Section */}
-            <View style={styles.detailsContainer}>
+            <View style={[styles.detailsContainer, { backgroundColor: colors.surface }]}>
               {/* Personal Info Card */}
               <View style={styles.section}>
-                <Text style={styles.sectionHeader}>Personal Information</Text>
+                <Text style={[styles.sectionHeader, { color: colors.text.secondary }]}>Personal Information</Text>
 
-                <View style={styles.detailCard}>
+                <View style={[styles.detailCard, { backgroundColor: isDark ? colors.background : '#FAFAFF' }]}>
                   <View style={styles.detailRow}>
-                    <View style={styles.iconContainer}>
+                    <View style={[styles.iconContainer, { backgroundColor: isDark ? '#6C63FF30' : 'rgba(108, 99, 255, 0.1)' }]}>
                       <MaterialIcons name="account-balance" size={20} color="#6C63FF" />
                     </View>
                     <View style={styles.detailTextContainer}>
-                      <Text style={styles.detailLabel}>Bank Account</Text>
-                      <Text style={styles.detailValue}>{salesman?.bank || 'Not specified'}</Text>
+                      <Text style={[styles.detailLabel, { color: colors.text.muted }]}>Bank Account</Text>
+                      <Text style={[styles.detailValue, { color: colors.text.primary }]}>{salesman?.bank || 'Not specified'}</Text>
                     </View>
                   </View>
 
-                  <View style={styles.divider} />
+                  <View style={[styles.divider, { backgroundColor: isDark ? colors.border : 'rgba(108, 99, 255, 0.1)' }]} />
 
                   <View style={styles.detailRow}>
-                    <View style={styles.iconContainer}>
+                    <View style={[styles.iconContainer, { backgroundColor: isDark ? '#FF658430' : 'rgba(255, 101, 132, 0.1)' }]}>
                       <MaterialIcons name="location-on" size={20} color="#FF6584" />
                     </View>
                     <View style={styles.detailTextContainer}>
-                      <Text style={styles.detailLabel}>Address</Text>
-                      <Text style={styles.detailValue}>{salesman?.address || 'No address provided'}</Text>
+                      <Text style={[styles.detailLabel, { color: colors.text.muted }]}>Address</Text>
+                      <Text style={[styles.detailValue, { color: colors.text.primary }]}>{salesman?.address || 'No address provided'}</Text>
                     </View>
                   </View>
 
-                  <View style={styles.divider} />
+                  <View style={[styles.divider, { backgroundColor: isDark ? colors.border : 'rgba(108, 99, 255, 0.1)' }]} />
 
                   <View style={styles.detailRow}>
-                    <View style={styles.iconContainer}>
+                    <View style={[styles.iconContainer, { backgroundColor: isDark ? '#6C63FF30' : 'rgba(108, 99, 255, 0.1)' }]}>
                       <MaterialIcons name="assignment" size={20} color="#6C63FF" />
                     </View>
                     <View style={styles.detailTextContainer}>
-                      <Text style={styles.detailLabel}>Address Proof</Text>
-                      <Text style={styles.detailValue}>
+                      <Text style={[styles.detailLabel, { color: colors.text.muted }]}>Address Proof</Text>
+                      <Text style={[styles.detailValue, { color: colors.text.primary }]}>
                         {salesman?.addressProof ? 'Uploaded ✓' : 'Not provided'}
                       </Text>
                     </View>
@@ -242,19 +266,19 @@ export default function SalesmanProfile() {
 
               {/* ID Section */}
               <View style={styles.section}>
-                <Text style={styles.sectionHeader}>Identification</Text>
+                <Text style={[styles.sectionHeader, { color: colors.text.secondary }]}>Identification</Text>
 
-                <View style={styles.detailCard}>
+                <View style={[styles.detailCard, { backgroundColor: isDark ? colors.background : '#FAFAFF' }]}>
                   <View style={styles.idRow}>
-                    <Text style={styles.idLabel}>Salesman ID</Text>
-                    <Text style={styles.idValue}>{salesman?.id}</Text>
+                    <Text style={[styles.idLabel, { color: colors.text.muted }]}>Salesman ID</Text>
+                    <Text style={[styles.idValue, { color: colors.primary }]}>{salesman?.id}</Text>
                   </View>
 
-                  <View style={styles.divider} />
+                  <View style={[styles.divider, { backgroundColor: isDark ? colors.border : 'rgba(108, 99, 255, 0.1)' }]} />
 
                   <View style={styles.idRow}>
-                    <Text style={styles.idLabel}>Hierarchy ID</Text>
-                    <Text style={styles.idValue}>{salesman?.hierarchyItemId}</Text>
+                    <Text style={[styles.idLabel, { color: colors.text.muted }]}>Hierarchy ID</Text>
+                    <Text style={[styles.idValue, { color: colors.primary }]}>{salesman?.hierarchyItemId}</Text>
                   </View>
                 </View>
               </View>
@@ -262,6 +286,28 @@ export default function SalesmanProfile() {
           </Animated.View>
         </ScrollView>
       </LinearGradient>
+
+      {/* Profile Photo Preview Modal */}
+      <Modal
+        visible={previewVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setPreviewVisible(false)}
+      >
+        <Pressable style={styles.previewBackdrop} onPress={() => setPreviewVisible(false)}>
+          <View style={styles.previewContent}>
+            <TouchableOpacity style={styles.previewCloseButton} onPress={() => setPreviewVisible(false)}>
+              <MaterialIcons name="close" size={28} color="#FFFFFF" />
+            </TouchableOpacity>
+            <Avatar
+              src={salesman?.avatar}
+              alt={salesman?.name}
+              size={280}
+              textStyle={{ fontSize: 80 }}
+            />
+          </View>
+        </Pressable>
+      </Modal>
 
       {/* Edit Profile Modal */}
       <SalesmanEditModal
@@ -275,7 +321,7 @@ export default function SalesmanProfile() {
         setAddressProofUri={setAddressProofUri}
         refetch={refetch}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -578,5 +624,84 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: 'white',
     fontWeight: '600',
+  },
+  themeToggleIconButton: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    zIndex: 10,
+  },
+  previewBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  previewContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    width: '100%',
+    height: '100%',
+  },
+  previewCloseButton: {
+    position: 'absolute',
+    top: 40,
+    right: 20,
+    padding: 10,
+    zIndex: 10,
+  },
+  appearanceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 4,
+  },
+  appearanceLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  appearanceTextContainer: {
+    justifyContent: 'center',
+  },
+  appearanceLabel: {
+    fontFamily: Theme.typography.fontFamily.semiBold,
+    fontSize: Theme.typography.sizes.body,
+  },
+  appearanceSublabel: {
+    fontFamily: Theme.typography.fontFamily.regular,
+    fontSize: Theme.typography.sizes.caption,
+    marginTop: 2,
+  },
+  themeToggleContainer: {
+    flexDirection: 'row',
+    borderRadius: Theme.radius.md,
+    padding: 3,
+    gap: 2,
+  },
+  themeTab: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: Theme.radius.sm,
+  },
+  themeTabActive: {
+    backgroundColor: '#FFFFFF',
+    ...Theme.shadows.sm,
+  },
+  themeTabActiveDark: {
+    backgroundColor: '#1E293B',
+    ...Theme.shadows.sm,
+  },
+  themeTabText: {
+    fontFamily: Theme.typography.fontFamily.medium,
+    fontSize: Theme.typography.sizes.bodySm,
   },
 });

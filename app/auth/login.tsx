@@ -5,11 +5,12 @@ import { tokenManager } from "@/lib/axios/tokenManager";
 import { ErrorResponse } from "@/lib/types/types";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Text, View, TextInput, ActivityIndicator, TouchableOpacity, StyleSheet, Image, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
 import * as Device from "expo-device";
 import * as Application from "expo-application";
-import { LoginSalesmanParams } from "@/shared/zod";
+import { LoginSalesmanParams, salesmanType } from "@/shared/zod";
+import { storageManager } from "@/lib/asyncStorage/asnycStoreMannager";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -26,26 +27,71 @@ const getDeviceDetails = async () => {
   };
 };
 
+const ROLES = [
+  { value: "FIELDEXECUTIVE", label: "Field Executive", icon: "people-outline" },
+  { value: "VANSALES", label: "Van Sales", icon: "car-outline" },
+  { value: "SUPERVISOR", label: "Supervisor", icon: "shield-checkmark-outline" },
+  { value: "CITYHEAD", label: "City Head", icon: "business-outline" },
+  { value: "MERCHANDISER", label: "Merchandiser", icon: "pricetag-outline" },
+  { value: "ASM", label: "Area Sales Manager", icon: "ribbon-outline" },
+  { value: "OFFICE", label: "Office Staff", icon: "desktop-outline" },
+  { value: "TERRITORY_SALES_MANAGER", label: "TSM", icon: "map-outline" },
+  { value: "DRIVER", label: "Driver", icon: "navigate-outline" },
+  { value: "FACTORY", label: "Factory", icon: "construct-outline" }
+] as const;
+
 export default function LoginScreen() {
-  const [email, setEmail] = useState("9999999999");
-  const [password, setPassword] = useState("test1234");
+  const [selectedRole, setSelectedRole] = useState<salesmanType>("FIELDEXECUTIVE");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [step, setStep] = useState<'select-role' | 'credentials'>('select-role');
   const [secureEntry, setSecureEntry] = useState(true);
   const [emailFocused, setEmailFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
   const router = useRouter();
 
-  const loginMutation = useMutation({
-    mutationFn: async (data: LoginSalesmanParams) => {
-      const res = await api.post(API_ROUTES.AUTH.LOGIN, data);
+  useEffect(() => {
+    const loadSelectedRole = async () => {
+      const storedRole = await storageManager.get<salesmanType>("SELECTED_ROLE");
+      if (storedRole) {
+        setSelectedRole(storedRole);
+      }
+    };
+    loadSelectedRole();
+  }, []);
+
+  const loginMutation = useMutation<any, ErrorResponse, LoginSalesmanParams>({
+    mutationFn: async (loginData: LoginSalesmanParams) => {
+      const res = await api.post(API_ROUTES.AUTH.LOGIN, loginData);
       return res.data;
     },
-    onSuccess: async (data) => {
+    onSuccess: async (data: any) => {
       setError("");
       if (data?.data?.token) {
+        // Set token temporarily to verify role
         await tokenManager.setToken(data?.data?.token);
         await tokenManager.setRefreshToken(data?.data?.refresh);
-        router.replace("/screens/checkin");
+
+        try {
+          // Fetch details to check if role matches
+          const userRes = await api.get(API_ROUTES.AUTH.ME);
+          const userRole = userRes.data?.data?.salesmanType;
+
+          if (userRole !== selectedRole) {
+            // Mismatch! Discard session and return error
+            await tokenManager.clearToken();
+            setError("Invalid password/role/email/number");
+            return;
+          }
+
+          // Match! Complete login
+          await storageManager.set("SELECTED_ROLE", selectedRole);
+          router.replace("/screens/checkin");
+        } catch (err) {
+          await tokenManager.clearToken();
+          setError("Login verification failed. Please try again.");
+        }
       } else {
         setError("No token returned from login response");
       }
@@ -110,100 +156,178 @@ export default function LoginScreen() {
 
         {/* Content Container (Card styling) */}
         <View style={styles.formCard}>
-          <Text style={styles.welcomeText}>Welcome Back</Text>
-          <Text style={styles.instructionText}>Please sign in to access your sales portal</Text>
+          {step === 'select-role' ? (
+            <>
+              <Text style={styles.welcomeText}>Select Your Role</Text>
+              <Text style={styles.instructionText}>Choose your role below to access the NexForce platform</Text>
 
-          {/* Form */}
-          <View style={styles.formContainer}>
-            {/* Email Input */}
-            <Text style={styles.inputLabel}>Mobile / Email</Text>
-            <View style={[
-              styles.inputContainer,
-              emailFocused && styles.inputContainerFocused
-            ]}>
-              <Ionicons 
-                name="call-outline" 
-                size={20} 
-                color={emailFocused ? Theme.colors.primary : Theme.colors.text.muted} 
-                style={styles.inputIcon} 
-              />
-              <TextInput
-                placeholder="Enter mobile number"
-                placeholderTextColor={Theme.colors.text.muted}
-                value={email}
-                onChangeText={setEmail}
-                autoCapitalize="none"
-                keyboardType="numeric"
-                style={styles.input}
-                autoCorrect={false}
-                onFocus={() => setEmailFocused(true)}
-                onBlur={() => setEmailFocused(false)}
-              />
-            </View>
+              {/* Form */}
+              <View style={styles.formContainer}>
+                {/* Role Selection Grid */}
+                <View style={styles.roleGrid}>
+                  {ROLES.map((role) => {
+                    const isActive = selectedRole === role.value;
+                    return (
+                      <TouchableOpacity
+                        key={role.value}
+                        style={[
+                          styles.roleGridItem,
+                          isActive && styles.roleGridItemActive
+                        ]}
+                        onPress={() => {
+                          setSelectedRole(role.value);
+                        }}
+                        activeOpacity={0.8}
+                      >
+                        <Ionicons
+                          name={role.icon}
+                          size={15}
+                          color={isActive ? "#FFFFFF" : Theme.colors.text.secondary}
+                        />
+                        <Text style={[
+                          styles.roleGridItemText,
+                          isActive && styles.roleGridItemTextActive
+                        ]} numberOfLines={1}>
+                          {role.label}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
 
-            {/* Password Input */}
-            <Text style={styles.inputLabel}>Password</Text>
-            <View style={[
-              styles.inputContainer,
-              passwordFocused && styles.inputContainerFocused
-            ]}>
-              <Ionicons 
-                name="lock-closed-outline" 
-                size={20} 
-                color={passwordFocused ? Theme.colors.primary : Theme.colors.text.muted} 
-                style={styles.inputIcon} 
-              />
-              <TextInput
-                placeholder="Enter password"
-                placeholderTextColor={Theme.colors.text.muted}
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={secureEntry}
-                style={styles.input}
-                onFocus={() => setPasswordFocused(true)}
-                onBlur={() => setPasswordFocused(false)}
-              />
+                {/* Continue button */}
+                <TouchableOpacity
+                  onPress={() => setStep('credentials')}
+                  activeOpacity={0.9}
+                >
+                  <LinearGradient
+                    colors={Theme.colors.gradients.primary}
+                    style={styles.loginButton}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <Text style={styles.loginButtonText}>Continue for Login</Text>
+                      <Ionicons name="arrow-forward" size={18} color="#FFFFFF" style={{ marginLeft: 8 }} />
+                    </View>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
+            </>
+          ) : (
+            <>
+              {/* Back button to choose roles step */}
               <TouchableOpacity
-                onPress={() => setSecureEntry(!secureEntry)}
-                style={styles.visibilityToggle}
+                onPress={() => {
+                  setError("");
+                  setStep('select-role');
+                }}
+                style={styles.backButtonRoles}
                 activeOpacity={0.7}
               >
-                <Ionicons
-                  name={secureEntry ? "eye-off-outline" : "eye-outline"}
-                  size={20}
-                  color={Theme.colors.text.muted}
-                />
+                <Ionicons name="arrow-back-outline" size={16} color={Theme.colors.primary} />
+                <Text style={styles.backButtonRolesText}>Change Role</Text>
               </TouchableOpacity>
-            </View>
 
-            {/* Error Message */}
-            {error ? (
-              <View style={styles.errorContainer}>
-                <Ionicons name="alert-circle" size={20} color={Theme.colors.danger} />
-                <Text style={styles.errorText}>{error}</Text>
+              <Text style={styles.welcomeText}>Login as {ROLES.find(r => r.value === selectedRole)?.label}</Text>
+              <Text style={styles.instructionText}>Enter your credentials to continue</Text>
+
+              {/* Form */}
+              <View style={styles.formContainer}>
+                {/* Email Input */}
+                <Text style={styles.inputLabel}>Mobile / Email</Text>
+                <View style={[
+                  styles.inputContainer,
+                  emailFocused && styles.inputContainerFocused
+                ]}>
+                  <Ionicons 
+                    name="call-outline" 
+                    size={20} 
+                    color={emailFocused ? Theme.colors.primary : Theme.colors.text.muted} 
+                    style={styles.inputIcon} 
+                  />
+                  <TextInput
+                    placeholder="Enter mobile number"
+                    placeholderTextColor={Theme.colors.text.muted}
+                    value={email}
+                    onChangeText={setEmail}
+                    autoCapitalize="none"
+                    keyboardType="numeric"
+                    style={styles.input}
+                    autoCorrect={false}
+                    onFocus={() => setEmailFocused(true)}
+                    onBlur={() => setEmailFocused(false)}
+                  />
+                </View>
+
+                {/* Password Input */}
+                <Text style={styles.inputLabel}>Password</Text>
+                <View style={[
+                  styles.inputContainer,
+                  passwordFocused && styles.inputContainerFocused
+                ]}>
+                  <Ionicons 
+                    name="lock-closed-outline" 
+                    size={20} 
+                    color={passwordFocused ? Theme.colors.primary : Theme.colors.text.muted} 
+                    style={styles.inputIcon} 
+                  />
+                  <TextInput
+                    placeholder="Enter password"
+                    placeholderTextColor={Theme.colors.text.muted}
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry={secureEntry}
+                    style={styles.input}
+                    onFocus={() => setPasswordFocused(true)}
+                    onBlur={() => setPasswordFocused(false)}
+                  />
+                  <TouchableOpacity
+                    onPress={() => setSecureEntry(!secureEntry)}
+                    style={styles.visibilityToggle}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons
+                      name={secureEntry ? "eye-off-outline" : "eye-outline"}
+                      size={20}
+                      color={Theme.colors.text.muted}
+                    />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Error Message */}
+                {error ? (
+                  <View style={styles.errorContainer}>
+                    <Ionicons name="alert-circle" size={20} color={Theme.colors.danger} />
+                    <Text style={styles.errorText}>{error}</Text>
+                  </View>
+                ) : null}
+
+                {/* Login Button */}
+                <TouchableOpacity
+                  onPress={handleLogin}
+                  disabled={loginMutation.status === "pending"}
+                  activeOpacity={0.9}
+                >
+                  <LinearGradient
+                    colors={Theme.colors.gradients.primary}
+                    style={[
+                      styles.loginButton,
+                      loginMutation.status === "pending" && styles.loginButtonDisabled
+                    ]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                  >
+                    {loginMutation.status === "pending" ? (
+                      <ActivityIndicator color="#FFFFFF" size="small" />
+                    ) : (
+                      <Text style={styles.loginButtonText}>Sign In</Text>
+                    )}
+                  </LinearGradient>
+                </TouchableOpacity>
               </View>
-            ) : null}
-
-            {/* Login Button */}
-            <TouchableOpacity
-              onPress={handleLogin}
-              disabled={loginMutation.status === "pending"}
-              activeOpacity={0.9}
-            >
-              <LinearGradient
-                colors={loginMutation.status === "pending" ? ["#93C5FD", "#60A5FA"] : Theme.colors.gradients.primary}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.loginButton}
-              >
-                {loginMutation.status === "pending" ? (
-                  <ActivityIndicator color="#fff" size="small" />
-                ) : (
-                  <Text style={styles.loginButtonText}>Sign In</Text>
-                )}
-              </LinearGradient>
-            </TouchableOpacity>
-          </View>
+            </>
+          )}
         </View>
 
         {/* Footer info */}
@@ -279,6 +403,19 @@ const styles = StyleSheet.create({
     padding: 24,
     ...Theme.shadows.lg,
   },
+  backButtonRoles: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    gap: 6,
+    marginBottom: 16,
+    paddingVertical: 4,
+  },
+  backButtonRolesText: {
+    fontFamily: Theme.typography.fontFamily.semiBold,
+    fontSize: Theme.typography.sizes.bodySm,
+    color: Theme.colors.primary,
+  },
   welcomeText: {
     fontFamily: Theme.typography.fontFamily.bold,
     fontSize: Theme.typography.sizes.h2,
@@ -295,6 +432,41 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     width: "100%",
+  },
+  roleGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    rowGap: 8,
+    columnGap: "4%",
+    marginBottom: 12,
+  },
+  roleGridItem: {
+    width: "48%",
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F8FAFC",
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: Theme.radius.sm,
+    borderWidth: 1,
+    borderColor: Theme.colors.border,
+    gap: 6,
+  },
+  roleGridItemActive: {
+    backgroundColor: Theme.colors.primary,
+    borderColor: Theme.colors.primary,
+    ...Theme.shadows.sm,
+  },
+  roleGridItemText: {
+    fontFamily: Theme.typography.fontFamily.medium,
+    fontSize: Theme.typography.sizes.bodySm - 1,
+    color: Theme.colors.text.secondary,
+    flex: 1,
+  },
+  roleGridItemTextActive: {
+    color: "#FFFFFF",
+    fontFamily: Theme.typography.fontFamily.semiBold,
   },
   inputLabel: {
     fontFamily: Theme.typography.fontFamily.semiBold,

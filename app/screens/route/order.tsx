@@ -21,6 +21,7 @@ import {
   Switch,
   RefreshControl,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 interface OrderItem {
   productId: string;
@@ -114,7 +115,7 @@ export default function OrderScreen() {
         selectedOrder={selectedOrder}
       />
 
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
         {/* Header */}
         <TabBar title="ORDERS" />
 
@@ -225,7 +226,7 @@ export default function OrderScreen() {
         >
           <Plus size={24} color="white" weight="bold" />
         </TouchableOpacity>
-      </View>
+      </SafeAreaView>
     </>
   );
 }

@@ -20,6 +20,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { format, isToday, isYesterday } from 'date-fns';
+import { SafeAreaView } from "react-native-safe-area-context";
 
 interface MyNotificationResponse extends Response {
   data: {
@@ -197,33 +198,37 @@ export default function NotificationScreen() {
 
   if (myNotification.isLoading && !refreshing) {
     return (
-      <View style={styles.centerContainer}>
-        <TabBar />
-        <ActivityIndicator size={"large"} color={primary}/>
-        <Text style={styles.loadingText}>Loading notifications</Text>
+      <View style={styles.container}>
+        <TabBar title="Notifications" />
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size={"large"} color={primary}/>
+          <Text style={styles.loadingText}>Loading notifications</Text>
+        </View>
       </View>
     );
   }
   
   if (myNotification.isError) {
     return (
-      <View style={styles.centerContainer}>
-        <TabBar />
-        <Ionicons name="alert-circle-outline" size={64} color="#FF6B6B" />
-        <Text style={styles.errorText}>Failed to load notifications</Text>
-        <TouchableOpacity 
-          style={styles.retryButton}
-          onPress={() => myNotification.refetch()}
-        >
-          <Text style={styles.retryText}>Try Again</Text>
-        </TouchableOpacity>
+      <View style={styles.container}>
+        <TabBar title="Notifications" />
+        <View style={styles.centerContainer}>
+          <Ionicons name="alert-circle-outline" size={64} color="#FF6B6B" />
+          <Text style={styles.errorText}>Failed to load notifications</Text>
+          <TouchableOpacity 
+            style={styles.retryButton}
+            onPress={() => myNotification.refetch()}
+          >
+            <Text style={styles.retryText}>Try Again</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <TabBar title="NOTIFICATIONS"/>
+      <TabBar title="Notifications"/>
       
       {myNotification.data?.data && myNotification.data.data.length > 0 ? (
         <FlatList

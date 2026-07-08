@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { Check } from 'phosphor-react-native';
-import { primary } from '@/constants/Colors';
+import { Theme } from '@/constants/Theme';
 
 const { width } = Dimensions.get('window');
 
@@ -73,20 +73,6 @@ export default function StepWizard({ steps, currentStep }: StepWizardProps) {
           );
         })}
       </View>
-
-      {/* <View style={styles.currentStepInfo}>
-        <Text style={styles.currentStepTitle}>
-          Step {currentStep}: {steps[currentStep - 1]?.title}
-        </Text>
-        <Text style={styles.currentStepDescription}>
-          {steps[currentStep - 1]?.description}
-        </Text>
-        {steps[currentStep - 1]?.mandatory && (
-          <View style={styles.mandatoryBadge}>
-            <Text style={styles.mandatoryText}>Required</Text>
-          </View>
-        )}
-      </View> */}
     </View>
   );
 }
@@ -118,19 +104,19 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   stepCircleActive: {
-    backgroundColor: primary,
-    shadowColor: primary,
+    backgroundColor: Theme.colors.primary,
+    shadowColor: Theme.colors.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 3,
   },
   stepCircleCompleted: {
-    backgroundColor: '#10B981',
+    backgroundColor: Theme.colors.success,
   },
   stepNumber: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: Theme.typography.fontFamily.semiBold,
     color: '#6B7280',
   },
   stepNumberActive: {
@@ -140,14 +126,14 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: '#9CA3AF',
     textAlign: 'center',
-    fontWeight: '500',
+    fontFamily: Theme.typography.fontFamily.medium,
   },
   stepLabelActive: {
-    color: primary,
-    fontWeight: '600',
+    color: Theme.colors.primary,
+    fontFamily: Theme.typography.fontFamily.bold,
   },
   stepLabelCompleted: {
-    color: '#10B981',
+    color: Theme.colors.success,
   },
   connector: {
     flex: 1,
@@ -157,7 +143,7 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
   connectorCompleted: {
-    backgroundColor: '#10B981',
+    backgroundColor: Theme.colors.success,
   },
   currentStepInfo: {
     marginTop: 16,
@@ -168,7 +154,7 @@ const styles = StyleSheet.create({
   },
   currentStepTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: Theme.typography.fontFamily.semiBold,
     color: '#111827',
     marginBottom: 4,
   },
@@ -176,6 +162,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#6B7280',
     textAlign: 'center',
+    fontFamily: Theme.typography.fontFamily.regular,
   },
   mandatoryBadge: {
     marginTop: 8,
@@ -186,7 +173,7 @@ const styles = StyleSheet.create({
   },
   mandatoryText: {
     fontSize: 11,
-    fontWeight: '600',
+    fontFamily: Theme.typography.fontFamily.semiBold,
     color: '#D97706',
   },
 });

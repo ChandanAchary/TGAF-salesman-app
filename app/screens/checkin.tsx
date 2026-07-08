@@ -61,11 +61,11 @@ export default function Checkin() {
     }
 
     if (activity === "ON_LEAVE") {
-      router.replace("/screens/attendence/applyLeave");
+      router.push("/screens/attendence/applyLeave");
       return;
     }
 
-    router.replace(`/screens/Selfi?startPoint=${encodeURIComponent(startPoint)}&activity=${encodeURIComponent(activity)}`);
+    router.push(`/screens/Selfi?startPoint=${encodeURIComponent(startPoint)}&activity=${encodeURIComponent(activity)}`);
   };
 
   const myDetailsQuery = useQuery<{ success: Boolean, message: String, data: myDataQuery }>({
@@ -193,6 +193,7 @@ export default function Checkin() {
                 <TouchableOpacity
                   style={[
                     styles.activityCard,
+                    styles.activityCardWorking,
                     selectedActivity === "WORKING" && styles.activityCardWorkingActive
                   ]}
                   onPress={() => handleActivitySelect("WORKING")}
@@ -212,6 +213,7 @@ export default function Checkin() {
                 <TouchableOpacity
                   style={[
                     styles.activityCard,
+                    styles.activityCardTaskForce,
                     selectedActivity === "TASK_FORCE" && styles.activityCardTaskForceActive
                   ]}
                   onPress={() => handleActivitySelect("TASK_FORCE")}
@@ -231,6 +233,7 @@ export default function Checkin() {
                 <TouchableOpacity
                   style={[
                     styles.activityCard,
+                    styles.activityCardLeave,
                     selectedActivity === "ON_LEAVE" && styles.activityCardLeaveActive
                   ]}
                   onPress={() => handleActivitySelect("ON_LEAVE")}
@@ -385,23 +388,33 @@ const styles = StyleSheet.create({
     borderRadius: Theme.radius.lg,
     padding: 16,
     borderWidth: 1,
+    borderLeftWidth: 5,
     borderColor: Theme.colors.border,
     gap: 14,
+  },
+  activityCardWorking: {
+    borderLeftColor: Theme.colors.success,
+  },
+  activityCardTaskForce: {
+    borderLeftColor: Theme.colors.warning,
+  },
+  activityCardLeave: {
+    borderLeftColor: Theme.colors.danger,
   },
   activityCardWorkingActive: {
     borderColor: Theme.colors.success,
     backgroundColor: "#ECFDF5",
-    ...Theme.shadows.sm,
+    ...Theme.shadows.md,
   },
   activityCardTaskForceActive: {
     borderColor: Theme.colors.warning,
     backgroundColor: "#FEF3C7",
-    ...Theme.shadows.sm,
+    ...Theme.shadows.md,
   },
   activityCardLeaveActive: {
     borderColor: Theme.colors.danger,
     backgroundColor: "#FEE2E2",
-    ...Theme.shadows.sm,
+    ...Theme.shadows.md,
   },
   iconCircle: {
     width: 48,

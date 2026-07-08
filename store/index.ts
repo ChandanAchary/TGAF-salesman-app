@@ -36,3 +36,17 @@ export const useUserStore = create<UserStore>((set) => ({
         set({ ...user })
     },
 }));
+
+interface ThemeStore {
+  themeMode: 'light' | 'dark';
+  toggleTheme: () => void;
+  setTheme: (mode: 'light' | 'dark') => void;
+}
+
+export const useThemeStore = create<ThemeStore>((set) => ({
+  themeMode: 'light',
+  toggleTheme: () => set((state) => ({
+    themeMode: state.themeMode === 'light' ? 'dark' : 'light'
+  })),
+  setTheme: (mode) => set({ themeMode: mode }),
+}));

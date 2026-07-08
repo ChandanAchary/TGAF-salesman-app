@@ -19,6 +19,7 @@ import { primary, secondary } from "@/constants/Colors";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { UpdateClosingStockParams, UpdateCustomerClosingStockParams } from "@/shared/zod";
 import ClickOnce from "@/components/ui/layout/ClickOnceButton";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 interface Product {
   price: number | null;
@@ -191,7 +192,7 @@ export default function Stt() {
   const stockSummary = calculateStockSummary();
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
       <TabBar title="Enter Closing Stock" />
 
       {productQuery.isLoading || customersttQuery.isLoading ? (
@@ -277,7 +278,7 @@ export default function Stt() {
           </Pressable>
         </ClickOnce>
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 

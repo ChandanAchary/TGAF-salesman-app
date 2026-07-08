@@ -259,20 +259,20 @@ export default function MyOutletScreen() {
   // Loading state
   if (routeQuery.isLoading) {
     return (
-      <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+      <View style={styles.container}>
         <TabBar title="Outlets" />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Theme.colors.primary} />
           <Text style={styles.loadingText}>Loading outlets plan...</Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   // Error state
   if (routeQuery.isError) {
     return (
-      <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+      <View style={styles.container}>
         <TabBar title="Outlets" />
         <View style={styles.errorContainer}>
           <MaterialIcons name="error-outline" size={48} color={Theme.colors.danger} />
@@ -285,7 +285,7 @@ export default function MyOutletScreen() {
             <Text style={styles.retryButtonText}>Try Again</Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 

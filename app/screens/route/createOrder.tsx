@@ -14,6 +14,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { Feather } from '@expo/vector-icons';
+import { SafeAreaView } from "react-native-safe-area-context";
 import TabBar from "@/components/ui/layout/TabBar";
 import { API_ROUTES } from "@/constants/ApiRoutes";
 import { api } from "@/lib/axios/axios";
@@ -163,7 +164,7 @@ export default function CreateOrderScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
       {/* Header */}
       <TabBar title="ORDER" />
 
@@ -287,7 +288,7 @@ export default function CreateOrderScreen() {
           )}
         </Pressable>
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 

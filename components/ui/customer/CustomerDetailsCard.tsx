@@ -1,6 +1,6 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { StyleSheet, Text, View, TouchableOpacity, Linking } from 'react-native';
-import { primary } from '@/constants/Colors';
+import { Theme } from '@/constants/Theme';
 import { Phone, MapPin, CalendarBlank, NavigationArrow } from 'phosphor-react-native';
 
 interface CustomerDetailsCardProps {
@@ -41,7 +41,7 @@ export default function CustomerDetailsCard({ name, phone, createdAt, latitude, 
       <View style={styles.actionsRow}>
         <TouchableOpacity style={styles.actionButton} onPress={handleCall} disabled={!phone}>
           <View style={[styles.iconBox, !phone && styles.disabledIcon]}>
-            <Phone size={20} color={phone ? primary : '#9CA3AF'} weight="fill" />
+            <Phone size={20} color={phone ? Theme.colors.primary : '#9CA3AF'} weight="fill" />
           </View>
           <View>
             <Text style={styles.actionLabel}>Phone</Text>
@@ -53,7 +53,7 @@ export default function CustomerDetailsCard({ name, phone, createdAt, latitude, 
 
         <TouchableOpacity style={styles.actionButton} onPress={handleMap} disabled={!latitude}>
           <View style={[styles.iconBox, !latitude && styles.disabledIcon]}>
-            <NavigationArrow size={20} color={latitude ? primary : '#9CA3AF'} weight="fill" />
+            <NavigationArrow size={20} color={latitude ? Theme.colors.primary : '#9CA3AF'} weight="fill" />
           </View>
           <View>
             <Text style={styles.actionLabel}>Location</Text>
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: Theme.typography.fontFamily.bold,
     color: '#111827',
     marginBottom: 4,
     letterSpacing: -0.5,
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
   dateText: {
     fontSize: 12,
     color: '#6B7280',
-    fontWeight: '500',
+    fontFamily: Theme.typography.fontFamily.medium,
   },
   divider: {
     height: 1,
@@ -132,11 +132,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#6B7280',
     marginBottom: 2,
-    fontWeight: '500',
+    fontFamily: Theme.typography.fontFamily.medium,
   },
   actionValue: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: Theme.typography.fontFamily.semiBold,
     color: '#1F2937',
   },
   verticalDivider: {

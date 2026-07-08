@@ -19,8 +19,13 @@ import {
 } from "react-native";
 import Toast from "react-native-toast-message";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { primary, primaryLight, border, text as textColors } from "@/constants/Colors";
+import { Theme, useAppTheme } from "@/constants/Theme";
 import * as Haptics from 'expo-haptics';
+
+const primary = Theme.colors.primary;
+const primaryLight = Theme.colors.primaryLight;
+const border = Theme.colors.border;
+const textColors = Theme.colors.text;
 import { formatDistanceToNow } from "date-fns";
 
 interface ActivityLog extends Response {
@@ -54,6 +59,8 @@ export default function ActivityLogsCard() {
   const queryClient = useQueryClient();
   const [showStartModal, setShowStartModal] = useState(false);
   const [selectedActivityId, setSelectedActivityId] = useState<string>("");
+  const { colors, mode } = useAppTheme();
+  const isDark = mode === 'dark';
 
   const getActivityLogs = useQuery({
     queryKey: ['getMyActivityLogs'],
@@ -145,10 +152,10 @@ export default function ActivityLogsCard() {
 
   if (getActivityLogs.isLoading) {
     return (
-      <View style={styles.card}>
+      <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="small" color={primary} />
-          <Text style={styles.loadingText}>Loading activities...</Text>
+          <ActivityIndicator size="small" color={colors.primary} />
+          <Text style={[styles.loadingText, { color: colors.text.secondary }]}>Loading activities...</Text>
         </View>
       </View>
     );
@@ -158,29 +165,29 @@ export default function ActivityLogsCard() {
     <>
       <View style={styles.container}>
         {/* Stack Effect Cards */}
-        <View style={[styles.stackCard, styles.stackCard2]} />
-        <View style={[styles.stackCard, styles.stackCard1]} />
+        <View style={[styles.stackCard, styles.stackCard2, { backgroundColor: colors.surface, borderColor: colors.border }]} />
+        <View style={[styles.stackCard, styles.stackCard1, { backgroundColor: colors.surface, borderColor: colors.border }]} />
 
-        <View style={styles.card}>
+        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           {/* Ongoing Activity Section */}
           {ongoingActivity ? (
-            <View style={styles.ongoingContainer}>
+            <View style={[styles.ongoingContainer, { backgroundColor: isDark ? "#064E3B20" : "#F0FDF4", borderColor: isDark ? "#064E3B50" : "#DCFCE7" }]}>
               <View style={styles.ongoingHeader}>
                 <Ionicons name="time-outline" size={16} color="#059669" />
                 <Text style={styles.ongoingLabel}>Ongoing Activity</Text>
               </View>
-              <Text style={styles.activityName} numberOfLines={2}>
+              <Text style={[styles.activityName, { color: colors.text.primary }]} numberOfLines={2}>
                 {ongoingActivity.activity.name}
               </Text>
-              <Text style={styles.duration}>
+              <Text style={[styles.duration, { color: colors.text.secondary }]}>
                 Started {formatDistanceToNow(new Date(ongoingActivity.createdAt), { addSuffix: true })}
               </Text>
             </View>
           ) : (
-            <View style={styles.noActivityContainer}>
-              <MaterialCommunityIcons name="clipboard-check-outline" size={32} color="#9CA3AF" />
-              <Text style={styles.noActivityText}>No ongoing activity</Text>
-              <Text style={styles.noActivitySubtext}>Start a new activity to track your work</Text>
+            <View style={[styles.noActivityContainer, { backgroundColor: isDark ? colors.background : '#F8FAFC', borderColor: colors.border }]}>
+              <MaterialCommunityIcons name="clipboard-check-outline" size={32} color={colors.text.muted} />
+              <Text style={[styles.noActivityText, { color: colors.text.primary }]}>No ongoing activity</Text>
+              <Text style={[styles.noActivitySubtext, { color: colors.text.muted }]}>Start a new activity to track your work</Text>
             </View>
           )}
 

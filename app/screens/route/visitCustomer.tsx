@@ -1,5 +1,5 @@
 import { API_ROUTES } from "@/constants/ApiRoutes";
-import { secondary, primary } from "@/constants/Colors";
+import { Theme } from "@/constants/Theme";
 import { api } from "@/lib/axios/axios";
 import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -110,7 +110,7 @@ export default function VisitCustomer() {
             style={[styles.tabItem, activeTab === 'orders' && styles.activeTabItem]}
             onPress={() => setActiveTab('orders')}
           >
-            <ShoppingCart size={20} color={activeTab === 'orders' ? primary : '#6B7280'} weight={activeTab === 'orders' ? 'fill' : 'regular'} />
+            <ShoppingCart size={20} color={activeTab === 'orders' ? Theme.colors.primary : '#6B7280'} weight={activeTab === 'orders' ? 'fill' : 'regular'} />
             <Text style={[styles.tabText, activeTab === 'orders' && styles.activeTabText]}>Orders</Text>
           </TouchableOpacity>
 
@@ -118,7 +118,7 @@ export default function VisitCustomer() {
             style={[styles.tabItem, activeTab === 'collections' && styles.activeTabItem]}
             onPress={() => setActiveTab('collections')}
           >
-            <CurrencyNgnIcon size={20} color={activeTab === 'collections' ? primary : '#6B7280'} weight={activeTab === 'collections' ? 'bold' : 'regular'} />
+            <CurrencyNgnIcon size={20} color={activeTab === 'collections' ? Theme.colors.primary : '#6B7280'} weight={activeTab === 'collections' ? 'bold' : 'regular'} />
             <Text style={[styles.tabText, activeTab === 'collections' && styles.activeTabText]}>Collections</Text>
           </TouchableOpacity>
         </View>
@@ -213,12 +213,12 @@ const styles = StyleSheet.create({
   },
   tabText: {
     fontSize: 12,
-    // fontWeight: '600',
+    fontFamily: Theme.typography.fontFamily.medium,
     color: '#6B7280',
   },
   activeTabText: {
-    color: primary,
-    // fontWeight: '700',
+    color: Theme.colors.primary,
+    fontFamily: Theme.typography.fontFamily.bold,
   },
   contentContainer: {
     paddingHorizontal: 20,

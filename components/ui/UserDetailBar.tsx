@@ -1,11 +1,13 @@
 import { useUserStore } from "@/store";
-import { Image, StyleSheet, Text, View } from "react-native";
-import { Theme } from "@/constants/Theme";
+import { Image, StyleSheet, Text, View, TouchableOpacity } from "react-native";
+import { Theme, useAppTheme } from "@/constants/Theme";
+import { router } from "expo-router";
 
 export default function UserDetailBar() {
   const salesmanType = useUserStore((state) => state.salesmanType);
   const salesmanName = useUserStore((state) => state.name);
   const avatar = useUserStore((state) => state.avatar);
+  const { colors } = useAppTheme();
 
   // Dynamic greeting based on current hour
   const getGreeting = () => {
@@ -21,17 +23,21 @@ export default function UserDetailBar() {
   };
 
   return (
-    <View style={styles.tabbarleft}>
+    <TouchableOpacity 
+      style={styles.tabbarleft} 
+      onPress={() => router.push('/screens/salesman/salesmen')}
+      activeOpacity={0.7}
+    >
       <Image 
         source={avatar ? { uri: avatar } : require("@/assets/images/react-logo.png")} 
-        style={styles.tabbarlogo} 
+        style={[styles.tabbarlogo, { borderColor: colors.surface }]} 
       />
       <View style={styles.tabbardetails}>
-        <Text style={styles.greetingText}>{getGreeting()},</Text>
-        <Text style={styles.nameText}>{salesmanName?.split(" ")[0] || "User"}</Text>
-        <Text style={styles.roleText}>{getCleanRole(salesmanType)}</Text>
+        <Text style={[styles.greetingText, { color: colors.text.secondary }]}>{getGreeting()},</Text>
+        <Text style={[styles.nameText, { color: colors.text.primary }]}>{salesmanName?.split(" ")[0] || "User"}</Text>
+        <Text style={[styles.roleText, { color: colors.text.muted }]}>{getCleanRole(salesmanType)}</Text>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 
@@ -48,7 +54,6 @@ const styles = StyleSheet.create({
     borderRadius: Theme.radius.full,
     resizeMode: "cover",
     borderWidth: 2,
-    borderColor: "#FFFFFF",
     ...Theme.shadows.sm,
   },
   tabbardetails: {
@@ -57,18 +62,15 @@ const styles = StyleSheet.create({
   greetingText: {
     fontFamily: Theme.typography.fontFamily.medium,
     fontSize: Theme.typography.sizes.caption,
-    color: "rgba(255, 255, 255, 0.7)",
   },
   nameText: {
     fontFamily: Theme.typography.fontFamily.bold,
     fontSize: Theme.typography.sizes.body,
-    color: "#FFFFFF",
     marginTop: -2,
   },
   roleText: {
     fontFamily: Theme.typography.fontFamily.medium,
     fontSize: 10,
-    color: "rgba(255, 255, 255, 0.5)",
     textTransform: "uppercase",
     letterSpacing: 0.5,
     marginTop: 2,

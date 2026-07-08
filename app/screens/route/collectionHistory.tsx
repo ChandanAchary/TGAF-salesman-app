@@ -17,6 +17,7 @@ import {
 } from "react-native";
 import { useRefreshOnFocus } from "@/hooks/useRefetchOnFocus";
 import { Receipt, ArrowDown, ArrowUp } from "phosphor-react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 interface Collection {
   id: string;
@@ -77,7 +78,7 @@ export default function CollectionHistory() {
   const collections = collectionQuery.data?.data || [];
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
       {/* Header */}
       <TabBar title="HISTORY" />
 
@@ -177,7 +178,7 @@ export default function CollectionHistory() {
           )}
         </ScrollView>
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 

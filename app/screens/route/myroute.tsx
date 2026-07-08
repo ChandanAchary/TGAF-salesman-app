@@ -352,7 +352,7 @@ export default function MyRouteScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
       <TabBar title="ROUTE PLAN" />
 
       {/* Mission Dashboard Card */}
@@ -453,35 +453,37 @@ export default function MyRouteScreen() {
           </TouchableOpacity>
         </View>
 
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filterTabs}
-        >
-          {[
-            { id: 'all', label: 'All Outlets' },
-            { id: 'notvisited', label: 'Pending' },
-            { id: 'visited', label: 'Visited' },
-            { id: 'ordered', label: 'Ordered' },
-          ].map((filter) => (
-            <TouchableOpacity
-              key={filter.id}
-              style={[
-                styles.filterTab,
-                customerFilter === filter.id && styles.filterTabActive
-              ]}
-              onPress={() => setCustomerFilter(filter.id as any)}
-              activeOpacity={0.8}
-            >
-              <Text style={[
-                styles.filterTabText,
-                customerFilter === filter.id && styles.filterTabTextActive
-              ]}>
-                {filter.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+        <View style={styles.segmentedControlWrapper}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.filterTabs}
+          >
+            {[
+              { id: 'all', label: 'All Outlets' },
+              { id: 'notvisited', label: 'Pending' },
+              { id: 'visited', label: 'Visited' },
+              { id: 'ordered', label: 'Ordered' },
+            ].map((filter) => (
+              <TouchableOpacity
+                key={filter.id}
+                style={[
+                  styles.filterTab,
+                  customerFilter === filter.id && styles.filterTabActive
+                ]}
+                onPress={() => setCustomerFilter(filter.id as any)}
+                activeOpacity={0.8}
+              >
+                <Text style={[
+                  styles.filterTabText,
+                  customerFilter === filter.id && styles.filterTabTextActive
+                ]}>
+                  {filter.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
       </View>
 
       {/* Optimizing Route Indicator */}
@@ -650,7 +652,7 @@ export default function MyRouteScreen() {
           </View>
         </ScrollView>
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -813,15 +815,15 @@ const styles = StyleSheet.create({
   statDivider: {
     width: 1,
     height: 24,
-    backgroundColor: 'rgba(15, 23, 42, 0.08)',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
   },
   statValueLight: {
-    color: Theme.colors.text.primary,
+    color: '#FFFFFF',
     fontFamily: Theme.typography.fontFamily.bold,
     fontSize: Theme.typography.sizes.h3,
   },
   statLabelLight: {
-    color: Theme.colors.text.secondary,
+    color: 'rgba(255, 255, 255, 0.8)',
     fontFamily: Theme.typography.fontFamily.medium,
     fontSize: Theme.typography.sizes.caption,
     marginTop: 2,
@@ -871,31 +873,34 @@ const styles = StyleSheet.create({
     borderColor: Theme.colors.primary,
     ...Theme.shadows.md,
   },
+  segmentedControlWrapper: {
+    backgroundColor: '#E2E8F0',
+    borderRadius: Theme.radius.full,
+    padding: 3,
+    marginTop: 4,
+  },
   filterTabs: {
-    gap: 8,
-    paddingBottom: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   filterTab: {
-    backgroundColor: 'white',
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 6,
     borderRadius: Theme.radius.full,
-    borderWidth: 1,
-    borderColor: Theme.colors.border,
-    ...Theme.shadows.sm,
   },
   filterTabActive: {
-    backgroundColor: Theme.colors.text.primary,
-    borderColor: Theme.colors.text.primary,
+    backgroundColor: '#FFFFFF',
+    ...Theme.shadows.sm,
   },
   filterTabText: {
-    fontSize: Theme.typography.sizes.bodySm,
+    fontSize: 12,
     fontFamily: Theme.typography.fontFamily.medium,
-    color: Theme.colors.text.secondary,
+    color: '#64748B',
   },
   filterTabTextActive: {
-    color: 'white',
-    fontFamily: Theme.typography.fontFamily.semiBold,
+    color: Theme.colors.primary,
+    fontFamily: Theme.typography.fontFamily.bold,
   },
   optimizingContainer: {
     flexDirection: 'row',

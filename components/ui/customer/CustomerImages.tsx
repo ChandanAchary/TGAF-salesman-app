@@ -8,7 +8,7 @@ import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'rea
 import { LinearGradient } from 'expo-linear-gradient';
 import { CameraModal } from '../CameraModel';
 import { ErrorResponse } from '@/lib/types/types';
-import { primary } from '@/constants/Colors';
+import { Theme } from '@/constants/Theme';
 
 interface CustomerImagesProps {
   customerId: string;
@@ -94,7 +94,13 @@ export default function CustomerImages({ customerId, innerImageUrl, outerImageUr
 
       <View style={styles.imageContainer}>
         {currentImage ? (
-          <Image source={{ uri: currentImage }} style={styles.image} resizeMode="cover" />
+          <>
+            <Image source={{ uri: currentImage }} style={styles.image} resizeMode="cover" />
+            <LinearGradient
+              colors={['transparent', 'rgba(0,0,0,0.8)']}
+              style={styles.gradientOverlay}
+            />
+          </>
         ) : (
           <View style={styles.emptyStateContainer}>
             <View style={styles.emptyStateGradient} />
@@ -140,9 +146,9 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   imageDateText: {
-    fontSize: 10,
+    fontSize: 12,
     color: '#fff',
-    fontWeight: '500',
+    fontFamily: Theme.typography.fontFamily.medium,
   },
   image: {
     width: '100%',
@@ -184,8 +190,8 @@ const styles = StyleSheet.create({
   },
   imageTitle: {
     color: 'white',
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 16,
+    fontFamily: Theme.typography.fontFamily.bold,
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 4,
