@@ -2,8 +2,8 @@ import TabBar from "@/components/ui/layout/TabBar";
 import TargetStatsChart from "@/components/ui/supervisor/TargetStatsChart";
 import Pfp from "@/components/lazy/Pfp";
 import { API_ROUTES } from "@/constants/ApiRoutes";
-import { primary, secondary } from "@/constants/Colors";
 import { api } from "@/lib/axios/axios";
+import { Theme, useAppTheme } from "@/constants/Theme";
 import { Response } from "@/lib/types/types";
 import { salesmanType } from "@/shared/zod";
 import { useQuery } from "@tanstack/react-query";
@@ -97,22 +97,25 @@ interface SalesmanStatsResponse extends Response {
 }
 
 function SalesmanProfileCard({ salesman }: { salesman: Salesman }) {
+  const { colors, mode } = useAppTheme();
+  const isDark = mode === 'dark';
+
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: isDark ? 1 : 0 }]}>
       <View style={styles.profileHeader}>
         <Pfp src={salesman.avatar} alt={salesman.name} size={72} />
         <View style={styles.profileInfo}>
-          <Text style={styles.profileName} numberOfLines={1}>{salesman.name}</Text>
-          <Text style={styles.profileType}>{salesman.salesmanType}</Text>
+          <Text style={[styles.profileName, { color: colors.text.primary }]} numberOfLines={1}>{salesman.name}</Text>
+          <Text style={[styles.profileType, { color: colors.text.secondary }]}>{salesman.salesmanType}</Text>
           <View style={styles.statusRow}>
-            <View style={[styles.statusBadge, { backgroundColor: salesman.isActive ? '#D1FAE5' : '#FEE2E2' }]}>
+            <View style={[styles.statusBadge, { backgroundColor: salesman.isActive ? (isDark ? '#064e3b' : '#D1FAE5') : (isDark ? '#7f1d1d' : '#FEE2E2') }]}>
               <View style={[styles.statusDot, { backgroundColor: salesman.isActive ? '#10B981' : '#EF4444' }]} />
-              <Text style={[styles.statusText, { color: salesman.isActive ? '#047857' : '#B91C1C' }]}>
+              <Text style={[styles.statusText, { color: salesman.isActive ? (isDark ? '#34d399' : '#047857') : (isDark ? '#fca5a5' : '#B91C1C') }]}>
                 {salesman.isActive ? 'Active' : 'Inactive'}
               </Text>
             </View>
             {salesman.virified && (
-              <View style={styles.verifiedBadge}>
+              <View style={[styles.verifiedBadge, { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.15)' : '#EFF6FF' }]}>
                 <MaterialIcons name="verified" size={14} color="#3B82F6" />
                 <Text style={styles.verifiedText}>Verified</Text>
               </View>
@@ -121,46 +124,46 @@ function SalesmanProfileCard({ salesman }: { salesman: Salesman }) {
         </View>
       </View>
 
-      <View style={styles.divider} />
+      <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
       <View style={styles.detailGrid}>
         <View style={styles.detailItem}>
-          <View style={[styles.iconContainer, { backgroundColor: '#EFF6FF' }]}>
+          <View style={[styles.iconContainer, { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.15)' : '#EFF6FF' }]}>
             <Ionicons name="call" size={16} color="#3B82F6" />
           </View>
           <View style={styles.detailText}>
-            <Text style={styles.detailLabel}>Phone</Text>
-            <Text style={styles.detailValue} numberOfLines={1}>{salesman.phone || 'N/A'}</Text>
+            <Text style={[styles.detailLabel, { color: colors.text.secondary }]}>Phone</Text>
+            <Text style={[styles.detailValue, { color: colors.text.primary }]} numberOfLines={1}>{salesman.phone || 'N/A'}</Text>
           </View>
         </View>
 
         <View style={styles.detailItem}>
-          <View style={[styles.iconContainer, { backgroundColor: '#F0FDF4' }]}>
+          <View style={[styles.iconContainer, { backgroundColor: isDark ? 'rgba(16, 185, 129, 0.15)' : '#F0FDF4' }]}>
             <Ionicons name="location" size={16} color="#10B981" />
           </View>
           <View style={styles.detailText}>
-            <Text style={styles.detailLabel}>Address</Text>
-            <Text style={styles.detailValue} numberOfLines={1}>{salesman.address || 'N/A'}</Text>
+            <Text style={[styles.detailLabel, { color: colors.text.secondary }]}>Address</Text>
+            <Text style={[styles.detailValue, { color: colors.text.primary }]} numberOfLines={1}>{salesman.address || 'N/A'}</Text>
           </View>
         </View>
 
         <View style={styles.detailItem}>
-          <View style={[styles.iconContainer, { backgroundColor: '#FFFBEB' }]}>
+          <View style={[styles.iconContainer, { backgroundColor: isDark ? 'rgba(245, 158, 11, 0.15)' : '#FFFBEB' }]}>
             <FontAwesome5 name="university" size={14} color="#F59E0B" />
           </View>
           <View style={styles.detailText}>
-            <Text style={styles.detailLabel}>Bank</Text>
-            <Text style={styles.detailValue} numberOfLines={1}>{salesman.bank || 'N/A'}</Text>
+            <Text style={[styles.detailLabel, { color: colors.text.secondary }]}>Bank</Text>
+            <Text style={[styles.detailValue, { color: colors.text.primary }]} numberOfLines={1}>{salesman.bank || 'N/A'}</Text>
           </View>
         </View>
 
         <View style={styles.detailItem}>
-          <View style={[styles.iconContainer, { backgroundColor: '#F5F3FF' }]}>
+          <View style={[styles.iconContainer, { backgroundColor: isDark ? 'rgba(139, 92, 246, 0.15)' : '#F5F3FF' }]}>
             <Ionicons name="card" size={16} color="#8B5CF6" />
           </View>
           <View style={styles.detailText}>
-            <Text style={styles.detailLabel}>BVN</Text>
-            <Text style={styles.detailValue} numberOfLines={1}>{salesman.bvnNumber || 'N/A'}</Text>
+            <Text style={[styles.detailLabel, { color: colors.text.secondary }]}>BVN</Text>
+            <Text style={[styles.detailValue, { color: colors.text.primary }]} numberOfLines={1}>{salesman.bvnNumber || 'N/A'}</Text>
           </View>
         </View>
       </View>
@@ -169,6 +172,9 @@ function SalesmanProfileCard({ salesman }: { salesman: Salesman }) {
 }
 
 function TargetComparisonChart({ target, actual }: { target: number; actual: number }) {
+  const { colors, mode } = useAppTheme();
+  const isDark = mode === 'dark';
+
   const data = [
     { value: target, label: 'Target', frontColor: '#3B82F6' },
     { value: actual, label: 'Actual', frontColor: actual >= target ? '#10B981' : '#F59E0B' },
@@ -177,12 +183,12 @@ function TargetComparisonChart({ target, actual }: { target: number; actual: num
   const maxValue = Math.max(target, actual, 1);
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: isDark ? 1 : 0 }]}>
       <View style={styles.chartCardHeader}>
-        <View style={[styles.iconContainer, { backgroundColor: '#EFF6FF' }]}>
+        <View style={[styles.iconContainer, { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.15)' : '#EFF6FF' }]}>
           <Ionicons name="stats-chart" size={18} color="#3B82F6" />
         </View>
-        <Text style={styles.chartCardTitle}>Target vs Actual</Text>
+        <Text style={[styles.chartCardTitle, { color: colors.text.primary }]}>Target vs Actual</Text>
       </View>
       <View style={styles.barChartContainer}>
         <BarChart
@@ -196,30 +202,30 @@ function TargetComparisonChart({ target, actual }: { target: number; actual: num
           hideRules
           yAxisThickness={0}
           xAxisThickness={1}
-          xAxisColor="#E2E8F0"
-          yAxisTextStyle={{ color: '#64748B', fontSize: 10 }}
-          xAxisLabelTextStyle={{ color: '#475569', fontSize: 12, fontWeight: '600' }}
+          xAxisColor={colors.border}
+          yAxisTextStyle={{ color: colors.text.secondary, fontSize: 10 }}
+          xAxisLabelTextStyle={{ color: colors.text.primary, fontSize: 12, fontWeight: '600' }}
           noOfSections={4}
           isAnimated
           showFractionalValues={false}
         />
       </View>
-      <View style={styles.targetSummaryRow}>
+      <View style={[styles.targetSummaryRow, { backgroundColor: isDark ? '#1e293b' : '#F8FAFC' }]}>
         <View style={styles.targetSummaryItem}>
-          <Text style={styles.targetSummaryValue}>{target}</Text>
-          <Text style={styles.targetSummaryLabel}>Target</Text>
+          <Text style={[styles.targetSummaryValue, { color: colors.text.primary }]}>{target}</Text>
+          <Text style={[styles.targetSummaryLabel, { color: colors.text.secondary }]}>Target</Text>
         </View>
-        <View style={styles.targetSummaryDivider} />
+        <View style={[styles.targetSummaryDivider, { backgroundColor: colors.border }]} />
         <View style={styles.targetSummaryItem}>
           <Text style={[styles.targetSummaryValue, { color: actual >= target ? '#10B981' : '#F59E0B' }]}>{actual}</Text>
-          <Text style={styles.targetSummaryLabel}>Actual</Text>
+          <Text style={[styles.targetSummaryLabel, { color: colors.text.secondary }]}>Actual</Text>
         </View>
-        <View style={styles.targetSummaryDivider} />
+        <View style={[styles.targetSummaryDivider, { backgroundColor: colors.border }]} />
         <View style={styles.targetSummaryItem}>
           <Text style={[styles.targetSummaryValue, { color: target > 0 && (actual / target) >= 1 ? '#10B981' : '#3B82F6' }]}>
             {target > 0 ? Math.round((actual / target) * 100) : 0}%
           </Text>
-          <Text style={styles.targetSummaryLabel}>Achieved</Text>
+          <Text style={[styles.targetSummaryLabel, { color: colors.text.secondary }]}>Achieved</Text>
         </View>
       </View>
     </View>
@@ -227,8 +233,11 @@ function TargetComparisonChart({ target, actual }: { target: number; actual: num
 }
 
 function AttendanceInsights({ attendance }: { attendance: Attendance[] }) {
+  const { colors, mode } = useAppTheme();
+  const isDark = mode === 'dark';
   const { width: screenWidth } = useWindowDimensions();
   const chartWidth = screenWidth - 72;
+
   const { totalCheckIns, activeSessions, lastSevenDaysData, avgHours } = useMemo(() => {
     const total = attendance.length;
     const active = attendance.filter(a => !a.checkOutTime).length;
@@ -267,35 +276,35 @@ function AttendanceInsights({ attendance }: { attendance: Attendance[] }) {
 
   const pieData = [
     { value: activeSessions, color: '#10B981' },
-    { value: Math.max(0, totalCheckIns - activeSessions), color: '#CBD5E1' },
+    { value: Math.max(0, totalCheckIns - activeSessions), color: isDark ? '#334155' : '#CBD5E1' },
   ];
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: isDark ? 1 : 0 }]}>
       <View style={styles.chartCardHeader}>
-        <View style={[styles.iconContainer, { backgroundColor: '#F0FDF4' }]}>
+        <View style={[styles.iconContainer, { backgroundColor: isDark ? 'rgba(16, 185, 129, 0.15)' : '#F0FDF4' }]}>
           <Ionicons name="time" size={18} color="#10B981" />
         </View>
-        <Text style={styles.chartCardTitle}>Attendance Insights</Text>
+        <Text style={[styles.chartCardTitle, { color: colors.text.primary }]}>Attendance Insights</Text>
       </View>
 
       <View style={styles.attendanceStatsRow}>
-        <View style={styles.attendanceStatBox}>
-          <Text style={styles.attendanceStatValue}>{totalCheckIns}</Text>
-          <Text style={styles.attendanceStatLabel}>Total Check-ins</Text>
+        <View style={[styles.attendanceStatBox, { backgroundColor: isDark ? '#1e293b' : '#F8FAFC' }]}>
+          <Text style={[styles.attendanceStatValue, { color: colors.text.primary }]}>{totalCheckIns}</Text>
+          <Text style={[styles.attendanceStatLabel, { color: colors.text.secondary }]}>Total Check-ins</Text>
         </View>
-        <View style={styles.attendanceStatBox}>
+        <View style={[styles.attendanceStatBox, { backgroundColor: isDark ? '#1e293b' : '#F8FAFC' }]}>
           <Text style={[styles.attendanceStatValue, { color: '#10B981' }]}>{activeSessions}</Text>
-          <Text style={styles.attendanceStatLabel}>Active Now</Text>
+          <Text style={[styles.attendanceStatLabel, { color: colors.text.secondary }]}>Active Now</Text>
         </View>
-        <View style={styles.attendanceStatBox}>
-          <Text style={styles.attendanceStatValue}>{avgHours}h</Text>
-          <Text style={styles.attendanceStatLabel}>Avg Duration</Text>
+        <View style={[styles.attendanceStatBox, { backgroundColor: isDark ? '#1e293b' : '#F8FAFC' }]}>
+          <Text style={[styles.attendanceStatValue, { color: colors.text.primary }]}>{avgHours}h</Text>
+          <Text style={[styles.attendanceStatLabel, { color: colors.text.secondary }]}>Avg Duration</Text>
         </View>
       </View>
 
-      <View style={styles.lineChartWrapper}>
-        <Text style={styles.miniChartTitle}>Last 7 Days</Text>
+      <View style={[styles.lineChartWrapper, { backgroundColor: isDark ? '#1e293b' : '#FAFAFA' }]}>
+        <Text style={[styles.miniChartTitle, { color: colors.text.secondary }]}>Last 7 Days</Text>
         <LineChart
           data={lastSevenDaysData}
           width={chartWidth - 24}
@@ -311,16 +320,16 @@ function AttendanceInsights({ attendance }: { attendance: Attendance[] }) {
           hideRules
           yAxisThickness={0}
           xAxisThickness={1}
-          xAxisColor="#E2E8F0"
-          yAxisTextStyle={{ color: '#64748B', fontSize: 9 }}
-          xAxisLabelTextStyle={{ color: '#64748B', fontSize: 8 }}
+          xAxisColor={colors.border}
+          yAxisTextStyle={{ color: colors.text.secondary, fontSize: 9 }}
+          xAxisLabelTextStyle={{ color: colors.text.secondary, fontSize: 8 }}
           noOfSections={3}
           maxValue={Math.max(...lastSevenDaysData.map(d => d.value), 5)}
         />
       </View>
 
-      <View style={styles.pieChartWrapper}>
-        <Text style={styles.miniChartTitle}>Active vs Completed</Text>
+      <View style={[styles.pieChartWrapper, { backgroundColor: isDark ? '#1e293b' : '#FAFAFA' }]}>
+        <Text style={[styles.miniChartTitle, { color: colors.text.secondary }]}>Active vs Completed</Text>
         <View style={{ alignItems: 'center', marginTop: 8 }}>
           <PieChart
             donut
@@ -328,18 +337,18 @@ function AttendanceInsights({ attendance }: { attendance: Attendance[] }) {
             radius={40}
             data={pieData}
             centerLabelComponent={() => (
-              <Text style={styles.pieCenterText}>{activeSessions}</Text>
+              <Text style={[styles.pieCenterText, { color: colors.text.primary }]}>{activeSessions}</Text>
             )}
           />
         </View>
         <View style={styles.pieLegend}>
           <View style={styles.legendItem}>
             <View style={[styles.legendDot, { backgroundColor: '#10B981' }]} />
-            <Text style={styles.legendText}>Active</Text>
+            <Text style={[styles.legendText, { color: colors.text.secondary }]}>Active</Text>
           </View>
           <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: '#CBD5E1' }]} />
-            <Text style={styles.legendText}>Completed</Text>
+            <View style={[styles.legendDot, { backgroundColor: isDark ? '#334155' : '#CBD5E1' }]} />
+            <Text style={[styles.legendText, { color: colors.text.secondary }]}>Completed</Text>
           </View>
         </View>
       </View>
@@ -348,6 +357,8 @@ function AttendanceInsights({ attendance }: { attendance: Attendance[] }) {
 }
 
 export default function SalesmanStats() {
+  const { colors, mode } = useAppTheme();
+  const isDark = mode === 'dark';
 
   const { salesmanId } = useLocalSearchParams();
   const [refreshing, setRefreshing] = useState(false);
@@ -355,6 +366,124 @@ export default function SalesmanStats() {
   const SalesmanStastsQuery = useQuery({
     queryKey: ["salesmanStats", salesmanId],
     queryFn: async () => {
+      const isMockId = !salesmanId || !salesmanId.toString().startsWith("c");
+      if (isMockId) {
+        const mockMembers = [
+          { id: "1", name: "Chinedu Alao", salesmanType: "Supervisor", avatar: "https://api.dicebear.com/7.x/adventurer/png?seed=Chinedu" },
+          { id: "2", name: "Fatima Bello", salesmanType: "Supervisor", avatar: "https://api.dicebear.com/7.x/adventurer/png?seed=Fatima" },
+          { id: "3", name: "Tunde Oshin", salesmanType: "Field Executive", avatar: "https://api.dicebear.com/7.x/adventurer/png?seed=Tunde" },
+          { id: "4", name: "Amara Nwachukwu", salesmanType: "Field Executive", avatar: "https://api.dicebear.com/7.x/adventurer/png?seed=Amara" },
+          { id: "5", name: "Ibrahim Kazeem", salesmanType: "Field Executive", avatar: "https://api.dicebear.com/7.x/adventurer/png?seed=Ibrahim" }
+        ];
+
+        const match = mockMembers.find(m => m.id === salesmanId) || mockMembers[0];
+
+        return {
+          success: true,
+          message: "Success",
+          data: {
+            salesman: {
+              id: match.id,
+              name: match.name,
+              salesmanType: match.salesmanType as any,
+              email: `${match.name.toLowerCase().replace(" ", "")}@nexforce.com`,
+              phone: "08012345678",
+              avatar: match.avatar,
+              tenantId: "t1",
+              virified: true,
+              password: "",
+              bank: "Access Bank",
+              bvnNumber: "12345678901",
+              address: "Lagos Branch Office",
+              addressProof: "",
+              hierarchyItemId: "h1",
+              isActive: true,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+              createdBy: null,
+              updatedBy: null
+            },
+            stats: {
+              target: {
+                id: "t_mock",
+                tenantId: "t1",
+                salesmanId: match.id,
+                target: 1500000,
+                actual: 1280000,
+                achievement: 85.3,
+                commission: 45000,
+                period: "2026-07",
+                isActive: true,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                createdBy: null,
+                updatedBy: null,
+                routeId: "r1",
+                date: new Date(),
+                route: {
+                  id: "r1",
+                  tenantId: "t1",
+                  isActive: true,
+                  createdAt: new Date(),
+                  updatedAt: new Date(),
+                  createdBy: null,
+                  updatedBy: null,
+                  name: "Allen Avenue Route",
+                  hierarchyItemId: "h1",
+                  RouteCustomer: []
+                }
+              },
+              attendance: [
+                {
+                  id: "att_1",
+                  tenantId: "t1",
+                  salesmanId: match.id,
+                  checkInTime: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+                  checkOutTime: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000 + 8 * 60 * 60 * 1000),
+                  startPoint: "Lagos Branch Office",
+                  selfieUrl: "https://api.dicebear.com/7.x/adventurer/png?seed=Selfie1",
+                  oddometerUrl: null,
+                  updatedBy: null
+                },
+                {
+                  id: "att_2",
+                  tenantId: "t1",
+                  salesmanId: match.id,
+                  checkInTime: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+                  checkOutTime: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000 + 9 * 60 * 60 * 1000),
+                  startPoint: "Lagos Branch Office",
+                  selfieUrl: "https://api.dicebear.com/7.x/adventurer/png?seed=Selfie2",
+                  oddometerUrl: null,
+                  updatedBy: null
+                },
+                {
+                  id: "att_3",
+                  tenantId: "t1",
+                  salesmanId: match.id,
+                  checkInTime: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+                  checkOutTime: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000 + 8 * 60 * 60 * 1000),
+                  startPoint: "Lagos Branch Office",
+                  selfieUrl: "https://api.dicebear.com/7.x/adventurer/png?seed=Selfie3",
+                  oddometerUrl: null,
+                  updatedBy: null
+                },
+                {
+                  id: "att_4",
+                  tenantId: "t1",
+                  salesmanId: match.id,
+                  checkInTime: new Date(Date.now()),
+                  checkOutTime: null,
+                  startPoint: "Lagos Branch Office",
+                  selfieUrl: "https://api.dicebear.com/7.x/adventurer/png?seed=Selfie4",
+                  oddometerUrl: null,
+                  updatedBy: null
+                }
+              ]
+            }
+          }
+        } as SalesmanStatsResponse;
+      }
+
       const res = await api.get<SalesmanStatsResponse>(API_ROUTES.SUPERVISOR.GET_SALESMAN_STATS(salesmanId as string));
       return res.data;
     }
@@ -371,9 +500,9 @@ export default function SalesmanStats() {
 
   if (!salesmanId) {
     return (
-      <view>
-        Salesman ID is missing. Please provide a valid salesman ID in the query parameters.
-      </view>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+        <Text style={{ color: colors.text.primary }}>Salesman ID is missing.</Text>
+      </View>
     )
   }
 
@@ -382,13 +511,13 @@ export default function SalesmanStats() {
   const attendance = SalesmanStastsQuery.data?.data.stats.attendance;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <TabBar title="Salesman Stats" />
 
       {/* Content */}
       {SalesmanStastsQuery.isFetching && !refreshing ? (
         <View style={styles.loader}>
-          <ActivityIndicator size="large" color={primary} />
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : (
         <ScrollView
@@ -397,7 +526,7 @@ export default function SalesmanStats() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              tintColor={primary}
+              tintColor={colors.primary}
             />
           }
         >
@@ -416,7 +545,7 @@ export default function SalesmanStats() {
             </View>
           ) : (
             <View style={styles.emptyState}>
-              <Text style={styles.emptyText}>No stats available for this salesman.</Text>
+              <Text style={[styles.emptyText, { color: colors.text.secondary }]}>No stats available for this salesman.</Text>
             </View>
           )}
         </ScrollView>
@@ -428,7 +557,7 @@ export default function SalesmanStats() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: secondary,
+    backgroundColor: "#e0e7ff",
   },
   header: {
     paddingHorizontal: 16,

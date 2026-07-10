@@ -1,6 +1,6 @@
 import ClickOnce from "@/components/ui/layout/ClickOnceButton";
 import { API_ROUTES } from "@/constants/ApiRoutes";
-import { Theme } from "@/constants/Theme";
+import { Theme, useAppTheme } from "@/constants/Theme";
 import { api } from "@/lib/axios/axios";
 import { getLocation } from "@/lib/location/location";
 import { CreateCustomerParams, GetOtpParams, VerifyOtpParams } from "@/shared/zod";
@@ -38,6 +38,8 @@ interface CustomerTypeQueryData {
 }
 
 export default function Store() {
+  const { colors, mode } = useAppTheme();
+  const isDark = mode === 'dark';
   const tenantId = "demo-tenant-id";
   const hierarchyItemId = useUserStore((state) => state.hierarchyItemId);
 
@@ -60,6 +62,31 @@ export default function Store() {
 
   // Focus states
   const [focusedField, setFocusedField] = useState<string | null>(null);
+
+  const themeStyles = {
+    headerTitle: { color: colors.text.primary },
+    headerSubtitle: { color: colors.text.secondary },
+    sectionTitle: { color: colors.text.primary },
+    label: { color: colors.text.secondary },
+    inputWrapper: {
+      backgroundColor: isDark ? '#1e293b' : '#F8FAFC',
+      borderColor: colors.border,
+    },
+    input: { color: colors.text.primary },
+    pickerContainer: {
+      backgroundColor: isDark ? '#1e293b' : '#F8FAFC',
+      borderColor: colors.border,
+    },
+    picker: { color: colors.text.primary },
+    imageUploadBox: {
+      backgroundColor: isDark ? 'rgba(255, 255, 255, 0.03)' : '#F8FAFC',
+      borderColor: colors.border,
+    },
+    imageBoxTitle: { color: colors.text.primary },
+    uploadIconBackground: {
+      backgroundColor: isDark ? '#1e293b' : '#E0F2FE',
+    },
+  };
 
   const customerTypeQuery = useQuery({
     queryKey: ['customerType'],
@@ -200,7 +227,7 @@ export default function Store() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#F8FAFC" }} edges={["top"]}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={["top"]}>
       <CameraModal
         open={innerImageModalOpen}
         setOpen={setInnerImageModalOpen}
@@ -249,22 +276,22 @@ export default function Store() {
         {/* Header Block */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.headerTitle}>New Customer</Text>
-            <Text style={styles.headerSubtitle}>Create a new retail outlet in NexForce</Text>
+            <Text style={[styles.headerTitle, themeStyles.headerTitle]}>New Customer</Text>
+            <Text style={[styles.headerSubtitle, themeStyles.headerSubtitle]}>Create a new retail outlet in NexForce</Text>
           </View>
-          <View style={styles.headerIconWrapper}>
+          <View style={[styles.headerIconWrapper, { backgroundColor: isDark ? 'rgba(37, 99, 235, 0.15)' : Theme.colors.primaryLight }]}>
             <Storefront size={32} weight="duotone" color={Theme.colors.primary} />
           </View>
         </View>
 
         {/* Form Container Card */}
-        <View style={styles.formCard}>
+        <View style={[styles.formCard, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: isDark ? 1 : 0 }]}>
           
           {/* SECTION 1: IMAGES */}
           <View style={styles.sectionContainer}>
-            <View style={styles.sectionHeader}>
+            <View style={[styles.sectionHeader, { borderLeftColor: colors.primary }]}>
               <Feather name="camera" size={16} color={Theme.colors.primary} />
-              <Text style={styles.sectionTitle}>Store Visuals</Text>
+              <Text style={[styles.sectionTitle, themeStyles.sectionTitle]}>Store Visuals</Text>
             </View>
             
             <View style={styles.imageGrid}>
@@ -273,6 +300,7 @@ export default function Store() {
                 onPress={() => setInnerImageModalOpen(true)}
                 style={[
                   styles.imageUploadBox,
+                  themeStyles.imageUploadBox,
                   innerImageUrl ? styles.imageUploadBoxActive : null
                 ]}
                 activeOpacity={0.8}
@@ -284,10 +312,10 @@ export default function Store() {
                   </>
                 ) : (
                   <>
-                    <View style={styles.uploadIconBackground}>
+                    <View style={[styles.uploadIconBackground, themeStyles.uploadIconBackground]}>
                       <ImageSquare size={24} color={Theme.colors.primary} />
                     </View>
-                    <Text style={styles.imageBoxTitle}>Inner View</Text>
+                    <Text style={[styles.imageBoxTitle, themeStyles.imageBoxTitle]}>Inner View</Text>
                     <Text style={styles.imageBoxSub}>Inside the outlet</Text>
                   </>
                 )}
@@ -298,6 +326,7 @@ export default function Store() {
                 onPress={() => setOuterImageModalOpen(true)}
                 style={[
                   styles.imageUploadBox,
+                  themeStyles.imageUploadBox,
                   outerImageUrl ? styles.imageUploadBoxActive : null
                 ]}
                 activeOpacity={0.8}
@@ -309,10 +338,10 @@ export default function Store() {
                   </>
                 ) : (
                   <>
-                    <View style={styles.uploadIconBackground}>
+                    <View style={[styles.uploadIconBackground, themeStyles.uploadIconBackground]}>
                       <ImageSquare size={24} color={Theme.colors.primary} />
                     </View>
-                    <Text style={styles.imageBoxTitle}>Outer View</Text>
+                    <Text style={[styles.imageBoxTitle, themeStyles.imageBoxTitle]}>Outer View</Text>
                     <Text style={styles.imageBoxSub}>Shopfront / Signage</Text>
                   </>
                 )}
@@ -322,24 +351,25 @@ export default function Store() {
 
           {/* SECTION 2: OWNER INFO */}
           <View style={styles.sectionContainer}>
-            <View style={styles.sectionHeader}>
+            <View style={[styles.sectionHeader, { borderLeftColor: colors.primary }]}>
               <Feather name="user" size={16} color={Theme.colors.primary} />
-              <Text style={styles.sectionTitle}>Owner Details</Text>
+              <Text style={[styles.sectionTitle, themeStyles.sectionTitle]}>Owner Details</Text>
             </View>
 
             <View style={styles.inputsGrid}>
               <View>
-                <Text style={styles.label}>Owner Name</Text>
+                <Text style={[styles.label, themeStyles.label]}>Owner Name</Text>
                 <View style={[
                   styles.inputWrapper,
+                  themeStyles.inputWrapper,
                   focusedField === 'name' && styles.inputWrapperFocused
                 ]}>
                   <TextInput
                     placeholder="Enter store owner full name"
-                    placeholderTextColor={Theme.colors.text.muted}
+                    placeholderTextColor={colors.text.muted}
                     value={name}
                     onChangeText={setName}
-                    style={styles.input}
+                    style={[styles.input, themeStyles.input]}
                     onFocus={() => setFocusedField('name')}
                     onBlur={() => setFocusedField(null)}
                   />
@@ -347,18 +377,19 @@ export default function Store() {
               </View>
 
               <View>
-                <Text style={styles.label}>Phone Number</Text>
+                <Text style={[styles.label, themeStyles.label]}>Phone Number</Text>
                 <View style={[
                   styles.inputWrapper,
+                  themeStyles.inputWrapper,
                   focusedField === 'phone' && styles.inputWrapperFocused
                 ]}>
                   <TextInput
                     placeholder="e.g. +234 800 000 0000"
-                    placeholderTextColor={Theme.colors.text.muted}
+                    placeholderTextColor={colors.text.muted}
                     value={phone}
                     onChangeText={setPhone}
                     keyboardType="phone-pad"
-                    style={styles.input}
+                    style={[styles.input, themeStyles.input]}
                     onFocus={() => setFocusedField('phone')}
                     onBlur={() => setFocusedField(null)}
                   />
@@ -367,26 +398,27 @@ export default function Store() {
             </View>
           </View>
 
-          {/* SECTION 3: STORE DETALS */}
+          {/* SECTION 3: STORE DETAILS */}
           <View style={styles.sectionContainer}>
-            <View style={styles.sectionHeader}>
+            <View style={[styles.sectionHeader, { borderLeftColor: colors.primary }]}>
               <Feather name="shopping-bag" size={16} color={Theme.colors.primary} />
-              <Text style={styles.sectionTitle}>Outlet Details</Text>
+              <Text style={[styles.sectionTitle, themeStyles.sectionTitle]}>Outlet Details</Text>
             </View>
 
             <View style={styles.inputsGrid}>
               <View>
-                <Text style={styles.label}>Market Name</Text>
+                <Text style={[styles.label, themeStyles.label]}>Market Name</Text>
                 <View style={[
                   styles.inputWrapper,
+                  themeStyles.inputWrapper,
                   focusedField === 'market' && styles.inputWrapperFocused
                 ]}>
                   <TextInput
                     placeholder="e.g. Balogun Main Market"
-                    placeholderTextColor={Theme.colors.text.muted}
+                    placeholderTextColor={colors.text.muted}
                     value={marketName}
                     onChangeText={setMarketName}
-                    style={styles.input}
+                    style={[styles.input, themeStyles.input]}
                     onFocus={() => setFocusedField('market')}
                     onBlur={() => setFocusedField(null)}
                   />
@@ -394,26 +426,28 @@ export default function Store() {
               </View>
 
               <View>
-                <Text style={styles.label}>Customer Type</Text>
-                <View style={styles.pickerContainer}>
+                <Text style={[styles.label, themeStyles.label]}>Customer Type</Text>
+                <View style={[styles.pickerContainer, themeStyles.pickerContainer]}>
                   {customerTypeQuery.isLoading ? (
                     <ActivityIndicator size="small" color={Theme.colors.primary} style={{ padding: 14 }} />
                   ) : customerTypeQuery.data ? (
                     <Picker
                       selectedValue={customerTypeId}
                       onValueChange={setCustomerTypeId}
-                      style={styles.picker}
-                      dropdownIconColor={Theme.colors.primary}
+                      style={[styles.picker, themeStyles.picker]}
+                      dropdownIconColor={colors.text.primary}
                     >
                       <Picker.Item
                         label="Select customer type..."
                         value=""
+                        color={colors.text.muted}
                       />
                       {customerTypeQuery.data.map((customerType) => (
                         <Picker.Item
                           key={customerType.id}
                           label={customerType.name}
                           value={customerType.id}
+                          color={colors.text.primary}
                         />
                       ))}
                     </Picker>
@@ -424,20 +458,21 @@ export default function Store() {
               </View>
 
               <View>
-                <Text style={styles.label}>Store Address</Text>
+                <Text style={[styles.label, themeStyles.label]}>Store Address</Text>
                 <View style={[
                   styles.inputWrapper,
                   styles.textAreaWrapper,
+                  themeStyles.inputWrapper,
                   focusedField === 'address' && styles.inputWrapperFocused
                 ]}>
                   <TextInput
                     placeholder="Enter full physical address, street and landmarks"
-                    placeholderTextColor={Theme.colors.text.muted}
+                    placeholderTextColor={colors.text.muted}
                     value={address}
                     onChangeText={setAddress}
                     multiline={true}
                     numberOfLines={3}
-                    style={styles.textArea}
+                    style={[styles.textArea, themeStyles.input]}
                     onFocus={() => setFocusedField('address')}
                     onBlur={() => setFocusedField(null)}
                   />
@@ -448,26 +483,27 @@ export default function Store() {
 
           {/* SECTION 4: SECURITY & VERIFICATION */}
           <View style={styles.sectionContainer}>
-            <View style={styles.sectionHeader}>
+            <View style={[styles.sectionHeader, { borderLeftColor: colors.primary }]}>
               <Feather name="shield" size={16} color={Theme.colors.primary} />
-              <Text style={styles.sectionTitle}>Verification Details</Text>
+              <Text style={[styles.sectionTitle, themeStyles.sectionTitle]}>Verification Details</Text>
             </View>
 
             <View style={styles.inputsGrid}>
               <View>
-                <Text style={styles.label}>BVN Number (Bank Verification Number)</Text>
+                <Text style={[styles.label, themeStyles.label]}>BVN Number (Bank Verification Number)</Text>
                 <View style={[
                   styles.inputWrapper,
+                  themeStyles.inputWrapper,
                   focusedField === 'bvn' && styles.inputWrapperFocused
                 ]}>
                   <TextInput
                     placeholder="11-digit BVN"
-                    placeholderTextColor={Theme.colors.text.muted}
+                    placeholderTextColor={colors.text.muted}
                     value={bvnNumber}
                     onChangeText={setBvnNumber}
                     keyboardType="numeric"
                     secureTextEntry={true}
-                    style={styles.input}
+                    style={[styles.input, themeStyles.input]}
                     maxLength={11}
                     onFocus={() => setFocusedField('bvn')}
                     onBlur={() => setFocusedField(null)}

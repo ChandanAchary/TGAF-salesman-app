@@ -1,5 +1,4 @@
 import { API_ROUTES } from "@/constants/ApiRoutes"
-import { background, border, primary, secondary, text } from "@/constants/Colors"
 import { api } from "@/lib/axios/axios"
 import { Response } from "@/lib/types/types";
 import { useQuery } from "@tanstack/react-query"
@@ -7,6 +6,7 @@ import { useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import TabBar from "@/components/ui/layout/TabBar";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Theme, useAppTheme } from "@/constants/Theme";
 import { Feather, MaterialIcons } from "@expo/vector-icons";
 import Avatar from "@/components/lazy/Avatar";
 import { router } from "expo-router";
@@ -33,6 +33,8 @@ interface PickStockResponse extends Response {
 }
 
 export default function reconciliationList() {
+  const { colors, mode } = useAppTheme();
+  const isDark = mode === 'dark';
   const [search, setSearch] = useState("");
 
   const getPickStocksQuery = useQuery({
@@ -79,14 +81,14 @@ export default function reconciliationList() {
   }, [getPickStocksQuery.data?.data, search]);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <TabBar title="RECONCILIATION">
-        <View style={styles.searchBarContainer}>
-          <Feather name="search" size={18} color={text.secondary} style={{ marginRight: 8 }} />
+        <View style={[styles.searchBarContainer, { backgroundColor: isDark ? '#1e293b' : '#f9f9f9', borderColor: colors.border, borderWidth: 1 }]}>
+          <Feather name="search" size={18} color={colors.text.secondary} style={{ marginRight: 8 }} />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: colors.text.primary }]}
             placeholder="Search by distributor name"
-            placeholderTextColor={text.secondary}
+            placeholderTextColor={colors.text.muted}
             value={search}
             onChangeText={setSearch}
             autoCorrect={false}
@@ -97,25 +99,25 @@ export default function reconciliationList() {
       </TabBar>
 
       <ScrollView
-        contentContainerStyle={styles.contentContainer}
+        contentContainerStyle={[styles.contentContainer, { backgroundColor: colors.background }]}
         refreshControl={
           <RefreshControl
             refreshing={getPickStocksQuery.isRefetching}
             onRefresh={() => getPickStocksQuery.refetch()}
-            tintColor={primary}
+            tintColor={colors.primary}
           />
         }
       >
         {getPickStocksQuery.isLoading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={primary} />
+            <ActivityIndicator size="large" color={colors.primary} />
           </View>
         ) : getPickStocksQuery.isError ? (
           <View style={styles.errorContainer}>
             <MaterialIcons name="error-outline" size={24} color="#dc2626" />
-            <Text style={styles.errorText}>Failed to load pick stocks</Text>
+            <Text style={[styles.errorText, { color: colors.text.primary }]}>Failed to load pick stocks</Text>
             <TouchableOpacity
-              style={styles.retryButton}
+              style={[styles.retryButton, { backgroundColor: colors.primary }]}
               onPress={() => getPickStocksQuery.refetch()}
             >
               <Text style={styles.retryButtonText}>Try Again</Text>
@@ -124,11 +126,15 @@ export default function reconciliationList() {
         ) : getPickStocksQuery.data?.success && filteredPickStocks.length > 0 ? (
           filteredPickStocks.map((pickStock) => (
             <Pressable
-              style={({ pressed }) => [styles.pickStockCard, { opacity: pressed ? 0.85 : 1 }]}
+              style={({ pressed }) => [
+                styles.pickStockCard,
+                { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: isDark ? 1 : 0 },
+                { opacity: pressed ? 0.85 : 1 }
+              ]}
               key={pickStock.id}
               onPress={() => { router.push(`/screens/pickstock/createReconcillation?pickstockId=${encodeURIComponent(pickStock.id)}`) }}
             >
-              <View style={styles.avatarPlaceholder}>
+              <View style={[styles.avatarPlaceholder, { backgroundColor: isDark ? '#1e293b' : colors.primaryLight }]}>
                 <Avatar
                   src={pickStock.distributor.avatar}
                   alt={pickStock.distributor.cseName}
@@ -137,25 +143,25 @@ export default function reconciliationList() {
               </View>
 
               <View style={styles.pickStockInfo}>
-                <Text style={styles.distributorName}>{pickStock.distributor.cseName}</Text>
+                <Text style={[styles.distributorName, { color: colors.text.primary }]}>{pickStock.distributor.cseName}</Text>
 
                 <View style={styles.infoRow}>
-                  <MaterialIcons name="inventory-2" size={16} color={primary} />
-                  <Text style={styles.infoText}>Items Taken: {pickStock.totalQuantity}</Text>
+                  <MaterialIcons name="inventory-2" size={16} color={colors.primary} />
+                  <Text style={[styles.infoText, { color: colors.text.secondary }]}>Items Taken: {pickStock.totalQuantity}</Text>
                 </View>
 
                 <View style={styles.infoRow}>
-                  <MaterialIcons name="access-time" size={16} color="hotpink" />
-                  <Text style={styles.infoText}>Pick Stock Time: {pickStock.pickStockTime}</Text>
+                  <MaterialIcons name="access-time" size={16} color={colors.primary} />
+                  <Text style={[styles.infoText, { color: colors.text.secondary }]}>Pick Stock Time: {pickStock.pickStockTime}</Text>
                 </View>
               </View>
             </Pressable>
           ))
         ) : (
           <View style={styles.emptyContainer}>
-            <MaterialIcons name="inventory" size={48} color={border} />
-            <Text style={styles.emptyText}>No pick stock entries found</Text>
-            <Text style={styles.emptySubtext}>Create a pick stock entry to get started</Text>
+            <MaterialIcons name="inventory" size={48} color={colors.border} />
+            <Text style={[styles.emptyText, { color: colors.text.primary }]}>No pick stock entries found</Text>
+            <Text style={[styles.emptySubtext, { color: colors.text.secondary }]}>Create a pick stock entry to get started</Text>
           </View>
         )}
       </ScrollView>
@@ -166,7 +172,7 @@ export default function reconciliationList() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: background,
+    backgroundColor: "#f5f5f5",
   },
   contentContainer: {
     padding: 16,
@@ -185,11 +191,11 @@ const styles = StyleSheet.create({
   errorText: {
     marginTop: 12,
     marginBottom: 16,
-    color: text.primary,
+    color: "#111827",
     fontSize: 13,
   },
   retryButton: {
-    backgroundColor: primary,
+    backgroundColor: "#1d4ed8",
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
@@ -212,7 +218,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: secondary,
+    backgroundColor: "#e0e7ff",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 16,
@@ -223,7 +229,7 @@ const styles = StyleSheet.create({
   distributorName: {
     fontSize: 14,
     fontWeight: "600",
-    color: text.primary,
+    color: "#111827",
     marginBottom: 4,
   },
   infoRow: {
@@ -233,7 +239,7 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontSize: 12,
-    color: text.secondary,
+    color: "#6b7280",
     marginLeft: 6,
   },
   emptyContainer: {
@@ -244,13 +250,13 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 18,
     fontWeight: "500",
-    color: text.primary,
+    color: "#111827",
     marginTop: 16,
     textAlign: "center",
   },
   emptySubtext: {
     fontSize: 14,
-    color: text.secondary,
+    color: "#6b7280",
     marginTop: 4,
     textAlign: "center",
   },
@@ -265,7 +271,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 15,
-    color: text.primary,
+    color: "#111827",
     paddingVertical: 16,
   },
 });

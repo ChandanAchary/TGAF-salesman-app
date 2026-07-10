@@ -1,6 +1,5 @@
 import TabBar from "@/components/ui/layout/TabBar";
 import { API_ROUTES } from "@/constants/ApiRoutes"
-import { primary, secondary, text, background, border, primaryLight } from "@/constants/Colors";
 import { api } from "@/lib/axios/axios";
 import { Response } from "@/lib/types/types";
 import { salesmanType } from "@/shared/zod";
@@ -14,6 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { errorHandler } from "@/lib/axios/errorHandler";
 import HapticPress from "@/components/ui/layout/HapticPress";
 import { useRouter } from "expo-router";
+import { Theme, useAppTheme } from "@/constants/Theme";
 
 interface LeaderboardResponse {
   id: string;
@@ -60,6 +60,8 @@ interface MySalesmanResponse extends Response {
 }
 
 export default function MySalesman() {
+  const { colors, mode } = useAppTheme();
+  const isDark = mode === 'dark';
   const [search, setSearch] = useState("");
   const router = useRouter();
 
@@ -112,18 +114,18 @@ export default function MySalesman() {
     if (rank === 1) return { backgroundColor: "#FFD700", color: "#fff" };
     if (rank === 2) return { backgroundColor: "#C0C0C0", color: "#fff" };
     if (rank === 3) return { backgroundColor: "#CD7F32", color: "#fff" };
-    return { backgroundColor: border, color: text.secondary };
+    return { backgroundColor: colors.border, color: colors.text.secondary };
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <TabBar title="SALESMEN">
-        <View style={styles.searchBarContainer}>
-          <Feather name="search" size={18} color={text.secondary} style={{ marginRight: 8 }} />
+        <View style={[styles.searchBarContainer, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }]}>
+          <Feather name="search" size={18} color={colors.text.secondary} style={{ marginRight: 8 }} />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: colors.text.primary }]}
             placeholder="Search by name or phone"
-            placeholderTextColor={text.secondary}
+            placeholderTextColor={colors.text.secondary}
             value={search}
             onChangeText={setSearch}
             autoCorrect={false}
@@ -138,19 +140,19 @@ export default function MySalesman() {
           <RefreshControl
             refreshing={query.isRefetching}
             onRefresh={() => query.refetch()}
-            tintColor={primary}
+            tintColor={colors.primary}
           />
         }>
         {query.isLoading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={primary} />
+            <ActivityIndicator size="large" color={colors.primary} />
           </View>
         ) : query.isError ? (
           <View style={styles.errorContainer}>
             <MaterialIcons name="error-outline" size={24} color="#dc2626" />
-            <Text style={styles.errorText}>Failed to load salesmen</Text>
+            <Text style={[styles.errorText, { color: colors.text.secondary }]}>Failed to load salesmen</Text>
             <TouchableOpacity
-              style={styles.retryButton}
+              style={[styles.retryButton, { backgroundColor: colors.primary }]}
               onPress={() => query.refetch()}
             >
               <Text style={styles.retryButtonText}>Try Again</Text>
@@ -164,9 +166,9 @@ export default function MySalesman() {
                 onPress={() => {
                   router.push(`/screens/supervisor/SalesmanStats?salesmanId=${encodeURIComponent(salesman.id)}`);
                 }}
-                style={styles.card} key={salesman.id}
+                style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: isDark ? 1 : 0 }]} key={salesman.id}
               >
-                <View style={styles.avatarContainer}>
+                <View style={[styles.avatarContainer, { backgroundColor: isDark ? '#1e293b' : colors.primaryLight }]}>
                   <Avatar
                     src={salesman.avatar}
                     alt={salesman.name}
@@ -174,39 +176,39 @@ export default function MySalesman() {
                   />
                 </View>
                 <View style={styles.info}>
-                  <Text style={styles.name}>{salesman.name}</Text>
+                  <Text style={[styles.name, { color: colors.text.primary }]}>{salesman.name}</Text>
                   <View style={styles.infoRow}>
-                    <MaterialIcons name="phone" size={16} color={primary} />
-                    <Text style={styles.phone}>{salesman.phone}</Text>
-                    <MaterialIcons name="person" size={16} color={primary} style={{ marginLeft: 12 }} />
-                    <Text style={styles.salesmanType}>{salesman.salesmanType}</Text>
+                    <MaterialIcons name="phone" size={16} color={colors.primary} />
+                    <Text style={[styles.phone, { color: colors.text.secondary }]}>{salesman.phone}</Text>
+                    <MaterialIcons name="person" size={16} color={colors.primary} style={{ marginLeft: 12 }} />
+                    <Text style={[styles.salesmanType, { color: colors.text.secondary }]}>{salesman.salesmanType}</Text>
                   </View>
                 </View>
                 <View style={styles.rankContainer}>
                   <View style={[styles.rankBadge, { backgroundColor: badgeStyle.backgroundColor }]}>
                     <Text style={[styles.rankText, { color: badgeStyle.color }]}>#{salesman.rank}</Text>
                   </View>
-                  <Text style={styles.points}>{salesman.points} pts</Text>
+                  <Text style={[styles.points, { color: colors.primary }]}>{salesman.points} pts</Text>
                 </View>
               </HapticPress>
             );
           })
         ) : (
           <View style={styles.emptyContainer}>
-            <MaterialIcons name="people-outline" size={48} color={border} />
-            <Text style={styles.emptyText}>No salesmen found</Text>
-            <Text style={styles.emptySubtext}>Add new salesmen to get started</Text>
+            <MaterialIcons name="people-outline" size={48} color={colors.border} />
+            <Text style={[styles.emptyText, { color: colors.text.primary }]}>No salesmen found</Text>
+            <Text style={[styles.emptySubtext, { color: colors.text.secondary }]}>Add new salesmen to get started</Text>
           </View>
         )}
       </ScrollView>
     </SafeAreaView>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: background,
+    backgroundColor: "#f5f5f5",
   },
   searchBarContainer: {
     flexDirection: 'row',
@@ -219,7 +221,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 15,
-    color: text.primary,
+    color: "#111827",
     paddingVertical: 16,
   },
   contentContainer: {
@@ -239,11 +241,11 @@ const styles = StyleSheet.create({
   errorText: {
     marginTop: 12,
     marginBottom: 16,
-    color: text.primary,
+    color: "#111827",
     fontSize: 13,
   },
   retryButton: {
-    backgroundColor: primary,
+    backgroundColor: "#1d4ed8",
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
@@ -266,7 +268,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: secondary,
+    backgroundColor: "#e0e7ff",
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -277,7 +279,7 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 14,
     fontWeight: '600',
-    color: text.primary,
+    color: "#111827",
     marginBottom: 4,
   },
   infoRow: {
@@ -287,7 +289,7 @@ const styles = StyleSheet.create({
   },
   phone: {
     fontSize: 12,
-    color: text.secondary,
+    color: "#6b7280",
     marginLeft: 6,
   },
   rankContainer: {
@@ -306,7 +308,7 @@ const styles = StyleSheet.create({
   points: {
     fontSize: 12,
     fontWeight: '600',
-    color: primary,
+    color: "#1d4ed8",
   },
   emptyContainer: {
     justifyContent: 'center',
@@ -316,17 +318,17 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 18,
     fontWeight: '500',
-    color: text.primary,
+    color: "#111827",
     marginTop: 16,
   },
   emptySubtext: {
     fontSize: 14,
-    color: text.secondary,
+    color: "#6b7280",
     marginTop: 4,
   },
   salesmanType: {
     fontSize: 10,
-    color: text.primary,
+    color: "#111827",
     fontStyle: 'italic',
   },
 });

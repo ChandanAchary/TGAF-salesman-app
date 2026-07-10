@@ -2,7 +2,7 @@ import ModalView from "@/components/ui/layout/Modal";
 import { OtpInput } from "@/components/ui/layout/OtpInput";
 import TabBar from "@/components/ui/layout/TabBar";
 import { API_ROUTES } from "@/constants/ApiRoutes";
-import { primary } from "@/constants/Colors";
+import { Theme, useAppTheme } from "@/constants/Theme";
 import { useRefreshOnFocus } from "@/hooks/useRefetchOnFocus";
 import { api } from "@/lib/axios/axios";
 import { ApprovePickStockParams, CreatePickStockParams } from "@/shared/models/salesman";
@@ -46,6 +46,8 @@ interface ProductResponse {
 }
 
 export default function createPickStock() {
+  const { colors, mode } = useAppTheme();
+  const isDark = mode === 'dark';
   const { distributorId } = useLocalSearchParams();
   const router = useRouter();
   const [quantities, setQuantities] = useState<Record<string, number>>({});
@@ -210,35 +212,36 @@ export default function createPickStock() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       <TabBar title="PICKSTOCK" />
       <ScrollView
-        contentContainerStyle={styles.container}
+        contentContainerStyle={[styles.container, { backgroundColor: colors.background }]}
         keyboardShouldPersistTaps="handled"
       >
         {/* Product List */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Select Products</Text>
+        <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: isDark ? 1 : 0 }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Select Products</Text>
           {productQuery.isLoading ? (
-            <ActivityIndicator size="small" color="#007bff" />
+            <ActivityIndicator size="small" color={colors.primary} />
           ) : productQuery.isError ? (
             <Text style={styles.errorText}>Failed to load products</Text>
           ) : (
             productQuery.data?.data.map((product) => (
-              <View key={product.id} style={styles.productCard}>
+              <View key={product.id} style={[styles.productCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                 <Image
                   source={{ uri: product.productImg }}
                   style={styles.image}
                   resizeMode="cover"
                 />
                 <View style={styles.productInfo}>
-                  <Text style={styles.name}>{product.name}</Text>
-                  <Text style={styles.price}>₦{product.price?.toLocaleString() ?? "N/A"}</Text>
+                  <Text style={[styles.name, { color: colors.text.primary }]}>{product.name}</Text>
+                  <Text style={[styles.price, { color: colors.primary }]}>₦{product.price?.toLocaleString() ?? "N/A"}</Text>
                   <View style={styles.quantityContainer}>
-                    <Text style={styles.quantityLabel}>Qty:</Text>
+                    <Text style={[styles.quantityLabel, { color: colors.text.secondary }]}>Qty:</Text>
                     <TextInput
-                      style={styles.input}
+                      style={[styles.input, { color: colors.text.primary, borderColor: colors.border, backgroundColor: isDark ? '#1e293b' : '#fff' }]}
                       placeholder="0"
+                      placeholderTextColor={colors.text.muted}
                       keyboardType="numeric"
                       onChangeText={(value) =>
                         handleQuantityChange(product.id, value)
@@ -255,23 +258,23 @@ export default function createPickStock() {
 
         {/* Order Summary */}
         {selectedItems.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Order Summary</Text>
+          <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: isDark ? 1 : 0 }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Order Summary</Text>
             <View style={styles.summaryItems}>
               {selectedItems.map((p) => (
                 <View key={p.id} style={styles.summaryItem}>
-                  <Text style={styles.summaryName} numberOfLines={1}>
+                  <Text style={[styles.summaryName, { color: colors.text.primary }]} numberOfLines={1}>
                     {p.name} × {quantities[p.id]}
                   </Text>
-                  <Text style={styles.summaryPrice}>
+                  <Text style={[styles.summaryPrice, { color: colors.text.primary }]}>
                     ₦{((p.price ?? 0) * (quantities[p.id] ?? 0)).toLocaleString()}
                   </Text>
                 </View>
               ))}
             </View>
-            <View style={styles.summaryTotal}>
-              <Text style={styles.totalLabel}>Total</Text>
-              <Text style={styles.totalAmount}>₦{totalPrice.toLocaleString()}</Text>
+            <View style={[styles.summaryTotal, { borderTopColor: colors.border }]}>
+              <Text style={[styles.totalLabel, { color: colors.text.primary }]}>Total</Text>
+              <Text style={[styles.totalAmount, { color: colors.primary }]}>₦{totalPrice.toLocaleString()}</Text>
             </View>
           </View>
         )}
@@ -280,6 +283,7 @@ export default function createPickStock() {
         <Pressable
           style={({ pressed }) => [
             styles.submitButton,
+            { backgroundColor: colors.primary },
             pressed && styles.submitButtonPressed,
             (createPickStockMutation.isPending || approvePickStockMutation.isPending || selectedItems.length === 0) && styles.submitButtonDisabled
           ]}
@@ -300,12 +304,12 @@ export default function createPickStock() {
         isReceiveModalVisible={otpModalVisible}
         setIsReceiveModalVisible={setOtpModalVisible}
       >
-        <View style={styles.modalContainer}>
-          <Text style={styles.modalTitle}>Verify OTP</Text>
-          <Text style={styles.modalMessage}>Enter the OTP to approve this pick stock.</Text>
+        <View style={[styles.modalContainer, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.modalTitle, { color: colors.text.primary }]}>Verify OTP</Text>
+          <Text style={[styles.modalMessage, { color: colors.text.secondary }]}>Enter the OTP to approve this pick stock.</Text>
           <OtpInput setOtp={setOtp} />
           <Pressable
-            style={[styles.modalButton, approvePickStockMutation.isPending && styles.submitButtonDisabled]}
+            style={[styles.modalButton, { backgroundColor: colors.primary }, approvePickStockMutation.isPending && styles.submitButtonDisabled]}
             onPress={handleVerifyOtp}
             disabled={approvePickStockMutation.isPending}
           >
@@ -322,9 +326,9 @@ export default function createPickStock() {
         isReceiveModalVisible={successModalVisible}
         setIsReceiveModalVisible={setSuccessModalVisible}
       >
-        <View style={styles.modalContainer}>
+        <View style={[styles.modalContainer, { backgroundColor: colors.surface }]}>
           <Text style={styles.successTitle}>Success</Text>
-          <Text style={styles.modalMessage}>{modalMessage}</Text>
+          <Text style={[styles.modalMessage, { color: colors.text.secondary }]}>{modalMessage}</Text>
           <Pressable
             style={[styles.modalButton, styles.successButton]}
             onPress={() => {
@@ -345,9 +349,9 @@ export default function createPickStock() {
         isReceiveModalVisible={errorModalVisible}
         setIsReceiveModalVisible={setErrorModalVisible}
       >
-        <View style={styles.modalContainer}>
+        <View style={[styles.modalContainer, { backgroundColor: colors.surface }]}>
           <Text style={styles.errorTitle}>Error</Text>
-          <Text style={styles.modalMessage}>{modalMessage}</Text>
+          <Text style={[styles.modalMessage, { color: colors.text.secondary }]}>{modalMessage}</Text>
           <Pressable
             style={[styles.modalButton, styles.errorButton]}
             onPress={() => setErrorModalVisible(false)}
@@ -357,7 +361,7 @@ export default function createPickStock() {
         </View>
       </ModalView>
     </SafeAreaView>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -582,7 +586,7 @@ const styles = StyleSheet.create({
   },
   modalButton: {
     marginTop: 8,
-    backgroundColor: primary,
+    backgroundColor: "#1d4ed8",
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',

@@ -1,6 +1,6 @@
 import TabBar from "@/components/ui/layout/TabBar";
 import { API_ROUTES } from "@/constants/ApiRoutes";
-import { Theme } from "@/constants/Theme";
+import { Theme, useAppTheme } from "@/constants/Theme";
 import { api } from "@/lib/axios/axios";
 import { errorHandler } from "@/lib/axios/errorHandler";
 import { getDistanceFast, getLocation } from "@/lib/location/location";
@@ -655,7 +655,6 @@ export default function MyRouteScreen() {
     </SafeAreaView>
   );
 }
-
 const CustomerCard = ({
   customer,
   visited,
@@ -672,12 +671,19 @@ const CustomerCard = ({
   onPress: () => void;
 }) => {
   const isCompleted = visited || ordered;
+  const { colors, mode } = useAppTheme();
+  const isDark = mode === 'dark';
 
   return (
     <TouchableOpacity
       style={[
         styles.outletCard,
-        isCompleted && styles.outletCardCompleted,
+        { 
+          backgroundColor: isCompleted 
+            ? (isDark ? colors.background : '#F8FAFC') 
+            : colors.surface,
+          borderColor: colors.border
+        }
       ]}
       onPress={onPress}
       activeOpacity={0.7}
@@ -685,11 +691,13 @@ const CustomerCard = ({
       {/* Visual status side border indicator */}
       <View style={[
         styles.statusStrip, 
-        ordered 
-          ? styles.statusStripGold 
-          : visited 
-            ? styles.statusStripGreen 
-            : styles.statusStripPending
+        {
+          backgroundColor: ordered 
+            ? colors.warning 
+            : visited 
+              ? colors.success 
+              : (isDark ? '#475569' : '#CBD5E1')
+        }
       ]} />
 
       <View style={styles.outletCardContent}>
@@ -697,20 +705,26 @@ const CustomerCard = ({
           <View style={styles.outletInfo}>
             <Text style={[
               styles.outletTitle,
-              isCompleted && styles.outletTitleCompleted
+              { color: isCompleted ? colors.text.secondary : colors.text.primary }
             ]} numberOfLines={1}>{customer.name}</Text>
             
             <View style={styles.outletMeta}>
-              <Feather name="map-pin" size={11} color={Theme.colors.text.muted} />
-              <Text style={styles.outletMetaText} numberOfLines={1}>{customer.marketName}</Text>
+              <Feather name="map-pin" size={11} color={colors.text.muted} />
+              <Text style={[styles.outletMetaText, { color: colors.text.secondary }]} numberOfLines={1}>{customer.marketName}</Text>
             </View>
           </View>
 
           <View style={styles.outletRight}>
             {distance !== null && (
-              <Text style={styles.distanceTextCompact}>{distance.toFixed(1)} km</Text>
+              <Text style={[
+                styles.distanceTextCompact, 
+                { 
+                  color: colors.primary, 
+                  backgroundColor: isDark ? 'rgba(37, 99, 235, 0.2)' : 'rgba(37, 99, 235, 0.1)' 
+                }
+              ]}>{distance.toFixed(1)} km</Text>
             )}
-            <Feather name="chevron-right" size={16} color={Theme.colors.text.muted} />
+            <Feather name="chevron-right" size={16} color={colors.text.muted} />
           </View>
         </View>
 
@@ -727,8 +741,15 @@ const CustomerCard = ({
               </View>
             )}
             {!visited && (
-              <View style={[styles.badgeCompact, styles.badgeGray]}>
-                <Text style={styles.badgeTextGray}>Pending</Text>
+              <View style={[
+                styles.badgeCompact, 
+                styles.badgeGray, 
+                { 
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : colors.surfaceAlt, 
+                  borderColor: colors.border 
+                }
+              ]}>
+                <Text style={[styles.badgeTextGray, { color: colors.text.secondary }]}>Pending</Text>
               </View>
             )}
           </View>
@@ -737,7 +758,6 @@ const CustomerCard = ({
     </TouchableOpacity>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,

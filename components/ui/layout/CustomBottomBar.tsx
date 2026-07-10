@@ -2,23 +2,31 @@ import React from "react";
 import { View, StyleSheet, Pressable, Text, Dimensions, Platform } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Theme, useAppTheme } from "@/constants/Theme";
-import { House, PlusCircle, ChartDonut, SquaresFour } from "phosphor-react-native";
+import { House, PlusCircle, ChartDonut, SquaresFour, TrendUp } from "phosphor-react-native";
 
 const { width } = Dimensions.get("window");
 
 interface CustomBottomBarProps {
   activeIndex: number;
   onTabPress: (index: number) => void;
+  isExecutive?: boolean;
 }
 
-export default function CustomBottomBar({ activeIndex, onTabPress }: CustomBottomBarProps) {
-  const { colors } = useAppTheme();
+export default function CustomBottomBar({ activeIndex, onTabPress, isExecutive = false }: CustomBottomBarProps) {
+  const { colors, mode } = useAppTheme();
+  const isDark = mode === 'dark';
 
-  const tabs = [
+  const baseTabs = [
     {
       label: "Home",
       icon: (focused: boolean) => (
         <House size={20} weight={focused ? "fill" : "regular"} color={focused ? "#FFFFFF" : "#94A3B8"} />
+      )
+    },
+    {
+      label: "Dashboard",
+      icon: (focused: boolean) => (
+        <TrendUp size={20} weight={focused ? "bold" : "regular"} color={focused ? "#FFFFFF" : "#94A3B8"} />
       )
     },
     {
@@ -41,11 +49,15 @@ export default function CustomBottomBar({ activeIndex, onTabPress }: CustomBotto
     }
   ];
 
+  const tabs = isExecutive 
+    ? baseTabs 
+    : baseTabs.filter(t => t.label !== "Dashboard");
+
   return (
     <View style={styles.containerWrapper}>
       {/* Gradient Background Fade behind the floating bar */}
       <LinearGradient
-        colors={["transparent", "rgba(248,250,252,0.8)", "#F8FAFC"]}
+        colors={isDark ? ["transparent", "rgba(15,23,42,0.8)", "#0f172a"] : ["transparent", "rgba(248,250,252,0.8)", "#F8FAFC"]}
         style={styles.gradientBackground}
         pointerEvents="none"
       />

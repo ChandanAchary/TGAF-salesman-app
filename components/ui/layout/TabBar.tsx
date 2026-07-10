@@ -4,6 +4,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import WifiButtonSmall from "../WifiButtonSmall";
 import { Theme, useAppTheme } from "@/constants/Theme";
+import { useUserStore } from "@/store";
 
 interface TabBarProps {
   title?: string,
@@ -18,17 +19,21 @@ export default function TabBar({ title, customLink, children, opacity, showHomeB
   const { colors } = useAppTheme();
   
   const handleBack = () => {
-    if (customLink) {
-      router.replace(customLink.path);
-    } else if (router.canGoBack()) {
+    if (router.canGoBack()) {
       router.back();
+    } else if (customLink) {
+      router.replace(customLink.path);
     } else {
-      router.replace("/(tabs)");
+      const rawRole = useUserStore.getState().salesmanType;
+      const isExecutive = rawRole === "CITYHEAD" || rawRole === "FIELDEXECUTIVE";
+      router.replace(isExecutive ? "/(tabs)/dashboard" : "/(tabs)");
     }
   };
 
   const handleHome = () => {
-    router.replace("/(tabs)");
+    const rawRole = useUserStore.getState().salesmanType;
+    const isExecutive = rawRole === "CITYHEAD" || rawRole === "FIELDEXECUTIVE";
+    router.replace(isExecutive ? "/(tabs)/dashboard" : "/(tabs)");
   };
 
   return (

@@ -7,10 +7,10 @@ import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, Toucha
 import { MaterialIcons } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
 import Avatar from "@/components/lazy/Avatar";
-import { primary, secondary, text, background, border } from "@/constants/Colors";
 import TabBar from "@/components/ui/layout/TabBar";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Theme, useAppTheme } from "@/constants/Theme";
 
 interface ForSettelmentResponse extends Response {
   data: {
@@ -39,6 +39,8 @@ interface ForSettelmentResponse extends Response {
 }
 
 export default function ListSettelment() {
+  const { colors, mode } = useAppTheme();
+  const isDark = mode === 'dark';
   const [search, setSearch] = useState("");
   const forSattelmentQuery = useQuery({
     queryKey: ["forSettlement"],
@@ -60,15 +62,15 @@ export default function ListSettelment() {
   }, [forSattelmentQuery.data?.data, search]);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <TabBar title="SETTLEMENTS">
         {/* Search bar */}
-        <View style={styles.searchBarContainer}>
-          <Feather name="search" size={18} color={text.secondary} style={{ marginRight: 8 }} />
+        <View style={[styles.searchBarContainer, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }]}>
+          <Feather name="search" size={18} color={colors.text.secondary} style={{ marginRight: 8 }} />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: colors.text.primary }]}
             placeholder="Search by name or phone"
-            placeholderTextColor={text.secondary}
+            placeholderTextColor={colors.text.secondary}
             value={search}
             onChangeText={setSearch}
             autoCorrect={false}
@@ -82,19 +84,19 @@ export default function ListSettelment() {
           <RefreshControl
             refreshing={forSattelmentQuery.isRefetching}
             onRefresh={() => forSattelmentQuery.refetch()}
-            tintColor={primary}
+            tintColor={colors.primary}
           />
         }>
         {forSattelmentQuery.isLoading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={primary} />
+            <ActivityIndicator size="large" color={colors.primary} />
           </View>
         ) : forSattelmentQuery.isError ? (
           <View style={styles.errorContainer}>
             <MaterialIcons name="error-outline" size={24} color="#dc2626" />
-            <Text style={styles.errorText}>Failed to load salesmen</Text>
+            <Text style={[styles.errorText, { color: colors.text.secondary }]}>Failed to load salesmen</Text>
             <TouchableOpacity
-              style={styles.retryButton}
+              style={[styles.retryButton, { backgroundColor: colors.primary }]}
               onPress={() => forSattelmentQuery.refetch()}
             >
               <Text style={styles.retryButtonText}>Try Again</Text>
@@ -105,12 +107,13 @@ export default function ListSettelment() {
             <Pressable
               style={({ pressed }) => [
                 styles.salesmanCard,
+                { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: isDark ? 1 : 0 },
                 { opacity: pressed ? 0.85 : 1 },
               ]}
               key={item.salesman.id}
               onPress={() => { router.push(`/screens/settelment/Settelment?id=${encodeURIComponent(item.salesman.id)}`) }}
             >
-              <View style={styles.avatarPlaceholder}>
+              <View style={[styles.avatarPlaceholder, { backgroundColor: isDark ? '#1e293b' : colors.primaryLight }]}>
                 <Avatar
                   src={item.salesman.avatar}
                   alt={item.salesman.name}
@@ -118,30 +121,30 @@ export default function ListSettelment() {
                 />
               </View>
               <View style={styles.salesmanInfo}>
-                <Text style={styles.salesmanName}>{item.salesman.name}</Text>
+                <Text style={[styles.salesmanName, { color: colors.text.primary }]}>{item.salesman.name}</Text>
                 <View style={styles.infoRow}>
-                  <MaterialIcons name="phone" size={16} color={primary} />
-                  <Text style={styles.salesmanPhone}>{item.salesman.phone}</Text>
+                  <MaterialIcons name="phone" size={16} color={colors.primary} />
+                  <Text style={[styles.salesmanPhone, { color: colors.text.secondary }]}>{item.salesman.phone}</Text>
                 </View>
               </View>
             </Pressable>
           ))
         ) : (
           <View style={styles.emptyContainer}>
-            <MaterialIcons name="person-outline" size={48} color={border} />
-            <Text style={styles.emptyText}>No salesmen found</Text>
-            <Text style={styles.emptySubtext}>Add new salesmen to get started</Text>
+            <MaterialIcons name="person-outline" size={48} color={colors.border} />
+            <Text style={[styles.emptyText, { color: colors.text.primary }]}>No salesmen found</Text>
+            <Text style={[styles.emptySubtext, { color: colors.text.secondary }]}>Add new salesmen to get started</Text>
           </View>
         )}
       </ScrollView>
     </SafeAreaView>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: background,
+    backgroundColor: '#f5f5f5',
   },
   contentContainer: {
     padding: 16,
@@ -160,11 +163,9 @@ const styles = StyleSheet.create({
   errorText: {
     marginTop: 12,
     marginBottom: 16,
-    color: text.primary,
     fontSize: 13,
   },
   retryButton: {
-    backgroundColor: primary,
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
@@ -187,7 +188,6 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: secondary,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -198,7 +198,6 @@ const styles = StyleSheet.create({
   salesmanName: {
     fontSize: 14,
     fontWeight: '600',
-    color: text.primary,
     marginBottom: 4,
   },
   infoRow: {
@@ -208,7 +207,6 @@ const styles = StyleSheet.create({
   },
   salesmanPhone: {
     fontSize: 12,
-    color: text.secondary,
     marginLeft: 6,
   },
   emptyContainer: {
@@ -219,12 +217,10 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 18,
     fontWeight: '500',
-    color: text.primary,
     marginTop: 16,
   },
   emptySubtext: {
     fontSize: 14,
-    color: text.secondary,
     marginTop: 4,
   },
   searchBarContainer: {
@@ -238,7 +234,6 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 15,
-    color: text.primary,
     paddingVertical: 16,
   },
 });

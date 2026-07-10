@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { StatusBar } from "react-native";
 import { setupOnlineManager } from "@/lib/setupOnlineManager";
 import Toast from "react-native-toast-message";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import * as SplashScreen from "expo-splash-screen";
 import { 
   useFonts,
@@ -16,12 +16,20 @@ import {
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
-export default function RootLayout() {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: 2 } },
-  });
+// Stable singleton — never recreate on re-render
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: 2 } },
+});
 
-  setupOnlineManager();
+export default function RootLayout() {
+  // Guard: only call setupOnlineManager once across the entire app lifecycle
+  const onlineManagerSetup = useRef(false);
+  useEffect(() => {
+    if (!onlineManagerSetup.current) {
+      onlineManagerSetup.current = true;
+      setupOnlineManager();
+    }
+  }, []);
 
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
@@ -63,4 +71,3 @@ export default function RootLayout() {
     </QueryClientProvider>
   );
 }
-

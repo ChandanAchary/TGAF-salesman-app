@@ -1,9 +1,9 @@
 import TabBar from "@/components/ui/layout/TabBar";
 import { API_ROUTES } from "@/constants/ApiRoutes";
-import { background, border, primary, text } from "@/constants/Colors";
 import { api } from "@/lib/axios/axios";
 import { ErrorResponse, Response } from "@/lib/types/types";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { Theme, useAppTheme } from "@/constants/Theme";
 import { useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
 import { Alert, StyleSheet, View, TextInput, Text, FlatList, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform, ColorValue } from "react-native";
@@ -47,6 +47,8 @@ type SalesmanSettlementParams = {
 }
 
 export default function Settelment() {
+  const { colors, mode } = useAppTheme();
+  const isDark = mode === 'dark';
   const { id } = useLocalSearchParams();
   const [paidAmt, setPaidAmt] = useState<string>("");
   const [activeTab, setActiveTab] = useState<'record' | 'history'>('record');
@@ -87,21 +89,21 @@ export default function Settelment() {
   };
 
   const renderHistoryItem = ({ item }: { item: any }) => (
-    <View style={styles.historyItem}>
-      <View style={styles.historyIconContainer}>
-        <ReceiptIcon size={24} color={primary} weight="duotone" />
+    <View style={[styles.historyItem, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+      <View style={[styles.historyIconContainer, { backgroundColor: isDark ? '#1e293b' : '#EFF6FF' }]}>
+        <Receipt size={24} color={colors.primary} weight="duotone" />
       </View>
       <View style={styles.historyContent}>
-        <Text style={styles.historyDate}>
+        <Text style={[styles.historyDate, { color: colors.text.primary }]}>
           {format(new Date(item.createdAt), 'dd MMM yyyy')}
         </Text>
-        <Text style={styles.historyTime}>
+        <Text style={[styles.historyTime, { color: colors.text.secondary }]}>
           {format(new Date(item.createdAt), 'hh:mm a')}
         </Text>
       </View>
       <View style={styles.historyAmountContainer}>
         <Text style={styles.historyPaidAmount}>+₦{item.paid.toFixed(2)}</Text>
-        <Text style={styles.historyDebtAmount}>Debt: ₦{item.debt.toFixed(2)}</Text>
+        <Text style={[styles.historyDebtAmount, { color: colors.text.secondary }]}>Debt: ₦{item.debt.toFixed(2)}</Text>
       </View>
     </View>
   );
@@ -114,7 +116,7 @@ export default function Settelment() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <TabBar title="Settlement" />
 
       <KeyboardAvoidingView
@@ -123,18 +125,18 @@ export default function Settelment() {
       >
 
         {/* Tabs */}
-        <View style={styles.tabContainer}>
+        <View style={[styles.tabContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <TouchableOpacity
-            style={[styles.tab, activeTab === 'record' && styles.activeTab]}
+            style={[styles.tab, activeTab === 'record' && [styles.activeTab, { backgroundColor: isDark ? '#1e293b' : '#eee' }]]}
             onPress={() => setActiveTab('record')}
           >
-            <Text style={[styles.tabText, activeTab === 'record' && styles.activeTabText]}>Record Payment</Text>
+            <Text style={[styles.tabText, { color: activeTab === 'record' ? colors.primary : colors.text.secondary }]}>Record Payment</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.tab, activeTab === 'history' && styles.activeTab]}
+            style={[styles.tab, activeTab === 'history' && [styles.activeTab, { backgroundColor: isDark ? '#1e293b' : '#eee' }]]}
             onPress={() => setActiveTab('history')}
           >
-            <Text style={[styles.tabText, activeTab === 'history' && styles.activeTabText]}>History</Text>
+            <Text style={[styles.tabText, { color: activeTab === 'history' ? colors.primary : colors.text.secondary }]}>History</Text>
           </TouchableOpacity>
         </View>
 
@@ -189,22 +191,22 @@ export default function Settelment() {
               );
             })()}
             <View style={styles.formContainer}>
-              <View style={styles.inputWrapper}>
-                <View style={styles.currencySymbolContainer}>
-                  <Text style={styles.currencySymbol}>₦</Text>
+              <View style={[styles.inputWrapper, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                <View style={[styles.currencySymbolContainer, { backgroundColor: isDark ? '#1e293b' : '#F3F4F6', borderRightColor: colors.border }]}>
+                  <Text style={[styles.currencySymbol, { color: colors.text.secondary }]}>₦</Text>
                 </View>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, { color: colors.text.primary }]}
                   value={paidAmt}
                   onChangeText={setPaidAmt}
                   placeholder="0.00"
-                  placeholderTextColor="#999"
+                  placeholderTextColor={colors.text.muted}
                   keyboardType="numeric"
                   returnKeyType="done"
                 />
               </View>
               <TouchableOpacity
-                style={[styles.submitButton, settlementMutation.isPending && styles.submitButtonDisabled]}
+                style={[styles.submitButton, { backgroundColor: colors.primary }, settlementMutation.isPending && styles.submitButtonDisabled]}
                 onPress={handleSubmit}
                 disabled={settlementMutation.isPending}
               >
@@ -223,11 +225,11 @@ export default function Settelment() {
           <View style={styles.historyContainer}>
             {salesmanSettlementHistory.isLoading ? (
               <View style={styles.loadingContainer}>
-                <ActivityIndicator size="small" color={primary} />
-                <Text style={styles.loadingText}>Loading history...</Text>
+                <ActivityIndicator size="small" color={colors.primary} />
+                <Text style={[styles.loadingText, { color: colors.text.secondary }]}>Loading history...</Text>
               </View>
             ) : salesmanSettlementHistory.isError ? (
-              <View style={styles.errorContainer}>
+              <View style={[styles.errorContainer, { backgroundColor: isDark ? '#2a1a1a' : '#FEF2F2' }]}>
                 <MaterialIcons name="error-outline" size={24} color="#FF3B30" />
                 <Text style={styles.errorText}>Failed to load history</Text>
               </View>
@@ -240,8 +242,8 @@ export default function Settelment() {
                 showsVerticalScrollIndicator={false}
                 ListEmptyComponent={
                   <View style={styles.emptyContainer}>
-                    <Receipt size={48} color="#ddd" weight="duotone" />
-                    <Text style={styles.emptyText}>No settlement history found</Text>
+                    <Receipt size={48} color={colors.text.muted} weight="duotone" />
+                    <Text style={[styles.emptyText, { color: colors.text.secondary }]}>No settlement history found</Text>
                   </View>
                 }
               />
@@ -256,7 +258,7 @@ export default function Settelment() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: background,
+    backgroundColor: "#f5f5f5",
   },
   contentContainer: {
     flex: 1,
@@ -345,7 +347,7 @@ const styles = StyleSheet.create({
     padding: 4,
     marginBottom: 24,
     borderWidth: 1,
-    borderColor: border,
+    borderColor: "#e5e7eb",
   },
   tab: {
     flex: 1,
@@ -359,10 +361,10 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: 14,
     fontWeight: '600',
-    color: text.secondary,
+    color: "#6b7280",
   },
   activeTabText: {
-    color: primary,
+    color: "#1d4ed8",
   },
   formContainer: {
     marginBottom: 24,
@@ -370,7 +372,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: text.primary,
+    color: "#111827",
     marginBottom: 12,
   },
   inputWrapper: {
@@ -379,7 +381,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: border,
+    borderColor: "#e5e7eb",
     marginBottom: 12,
     height: 56,
     overflow: 'hidden',
@@ -390,18 +392,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#F3F4F6',
     borderRightWidth: 1,
-    borderRightColor: border,
+    borderRightColor: "#e5e7eb",
   },
   currencySymbol: {
     fontSize: 18,
     fontWeight: '600',
-    color: text.secondary,
+    color: "#6b7280",
   },
   input: {
     flex: 1,
     height: '100%',
     fontSize: 18,
-    color: text.primary,
+    color: "#111827",
     paddingHorizontal: 16,
     fontWeight: '500',
   },
@@ -409,10 +411,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: primary,
+    backgroundColor: "#1d4ed8",
     borderRadius: 12,
     height: 50,
-    shadowColor: primary,
+    shadowColor: "#1d4ed8",
     shadowOffset: {
       width: 0,
       height: 4,
@@ -443,7 +445,7 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: border,
+    borderColor: "#e5e7eb",
   },
   historyIconContainer: {
     width: 40,
@@ -460,12 +462,12 @@ const styles = StyleSheet.create({
   historyDate: {
     fontSize: 14,
     fontWeight: '600',
-    color: text.primary,
+    color: "#111827",
     marginBottom: 2,
   },
   historyTime: {
     fontSize: 12,
-    color: text.secondary,
+    color: "#6b7280",
   },
   historyAmountContainer: {
     alignItems: 'flex-end',
@@ -478,7 +480,7 @@ const styles = StyleSheet.create({
   },
   historyDebtAmount: {
     fontSize: 12,
-    color: text.secondary,
+    color: "#6b7280",
   },
   loadingContainer: {
     flexDirection: 'row',
@@ -488,7 +490,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginLeft: 8,
-    color: text.secondary,
+    color: "#6b7280",
     fontSize: 14,
   },
   errorContainer: {
@@ -511,7 +513,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     marginTop: 12,
-    color: text.secondary,
+    color: "#6b7280",
     fontSize: 15,
   },
 });

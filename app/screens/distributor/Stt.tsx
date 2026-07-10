@@ -15,7 +15,7 @@ import {
   RefreshControl,
 } from "react-native";
 import TabBar from "@/components/ui/layout/TabBar";
-import { primary, secondary } from "@/constants/Colors";
+import { Theme, useAppTheme } from "@/constants/Theme";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { UpdateClosingStockParams } from "@/shared/zod";
 import ClickOnce from "@/components/ui/layout/ClickOnceButton";
@@ -84,6 +84,8 @@ interface StockSummary {
 }
 
 export default function Stt() {
+  const { colors, mode } = useAppTheme();
+  const isDark = mode === 'dark';
   const [closingStock, setClosingStock] = useState<Record<string, number>>({});
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -194,12 +196,12 @@ export default function Stt() {
   const stockSummary = calculateStockSummary();
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <TabBar title="Enter Closing Stock" />
 
       {productQuery.isLoading || sttQuery.isLoading ? (
         <View style={styles.loader}>
-          <ActivityIndicator size="large" color={primary} />
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : (
         <ScrollView
@@ -208,21 +210,21 @@ export default function Stt() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              tintColor={primary}
+              tintColor={colors.primary}
             />
           }
         >
           {/* Stock Summary Card */}
-          <View style={styles.summaryCard}>
-            <Text style={styles.summaryTitle}>Stock Summary</Text>
+          <View style={[styles.summaryCard, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: isDark ? 1 : 0 }]}>
+            <Text style={[styles.summaryTitle, { color: colors.text.primary }]}>Stock Summary</Text>
             {stockSummary.map((summary) => (
-              <View key={summary.productId} style={styles.summaryItem}>
-                <Text style={styles.summaryItemName}>{summary.productName}</Text>
+              <View key={summary.productId} style={[styles.summaryItem, { borderBottomColor: colors.border }]}>
+                <Text style={[styles.summaryItemName, { color: colors.text.primary }]}>{summary.productName}</Text>
                 <View style={styles.summaryDetails}>
-                  <Text style={styles.summaryDetail}>Opening: {summary.openingStock}</Text>
-                  <Text style={styles.summaryDetail}>Supply: {summary.supplyStock}</Text>
-                  <Text style={styles.summaryDetail}>Closing: {summary.closingStock}</Text>
-                  <Text style={[styles.summaryDetail, styles.sttText]}>
+                  <Text style={[styles.summaryDetail, { color: colors.text.secondary }]}>Opening: {summary.openingStock}</Text>
+                  <Text style={[styles.summaryDetail, { color: colors.text.secondary }]}>Supply: {summary.supplyStock}</Text>
+                  <Text style={[styles.summaryDetail, { color: colors.text.secondary }]}>Closing: {summary.closingStock}</Text>
+                  <Text style={[styles.summaryDetail, styles.sttText, { color: colors.primary }]}>
                     STT: {summary.stt}
                   </Text>
                 </View>
@@ -231,23 +233,23 @@ export default function Stt() {
           </View>
 
           {/* Product List */}
-          <Text style={styles.sectionTitle}>Enter Closing Stock</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text.secondary }]}>Enter Closing Stock</Text>
 
           {productQuery.data?.data.map((product) => (
-            <View key={product.id} style={styles.productCard}>
+            <View key={product.id} style={[styles.productCard, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: isDark ? 1 : 0 }]}>
               <Image
                 source={{ uri: product.productImg || "https://via.placeholder.com/150" }}
-                style={styles.productImage}
+                style={[styles.productImage, { backgroundColor: isDark ? '#1e293b' : '#F3F4F6' }]}
                 resizeMode="cover"
               />
 
               <View style={styles.productDetails}>
-                <Text style={styles.productName}>{product.name}</Text>
+                <Text style={[styles.productName, { color: colors.text.primary }]}>{product.name}</Text>
                 <View style={styles.stockInfo}>
-                  <Text style={styles.stockInfoText}>
+                  <Text style={[styles.stockInfoText, { color: colors.text.secondary }]}>
                     Opening: {stockSummary.find(s => s.productId === product.id)?.openingStock ?? 0}
                   </Text>
-                  <Text style={styles.stockInfoText}>
+                  <Text style={[styles.stockInfoText, { color: colors.text.secondary }]}>
                     Invoice: {stockSummary.find(s => s.productId === product.id)?.supplyStock ?? 0}
                   </Text>
                 </View>
@@ -255,9 +257,10 @@ export default function Stt() {
 
               <View style={styles.stockInput}>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, { color: colors.text.primary, borderColor: colors.border, backgroundColor: isDark ? '#1e293b' : '#F9FAFB' }]}
                   keyboardType="numeric"
                   placeholder="Closing"
+                  placeholderTextColor={colors.text.muted}
                   value={closingStock[product.id]?.toString() || ""}
                   onChangeText={(value) => handleStockChange(product.id, value)}
                 />
@@ -271,7 +274,7 @@ export default function Stt() {
       {productsWithStock.length > 0 && (
         <ClickOnce isLoading={loading}>
           <Pressable
-            style={styles.submitButton}
+            style={[styles.submitButton, { backgroundColor: colors.primary }]}
             onPress={handleSubmit}
           >
             <Text style={styles.submitButtonText}>
@@ -287,7 +290,7 @@ export default function Stt() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: secondary,
+    backgroundColor: "#e0e7ff",
   },
   header: {
     padding: 16,
@@ -402,7 +405,7 @@ const styles = StyleSheet.create({
     bottom: 24,
     left: 16,
     right: 16,
-    backgroundColor: primary,
+    backgroundColor: "#1d4ed8",
     borderRadius: 12,
     padding: 16,
     alignItems: "center",
@@ -427,7 +430,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   sttText: {
-    color: primary,
+    color: "#1d4ed8",
     fontWeight: "600",
   },
   stockInfo: {

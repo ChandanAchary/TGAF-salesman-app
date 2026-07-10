@@ -15,6 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import ActivityLogsCard from "@/components/ui/home/ActivityLogsCard";
 import { LinearGradient } from "expo-linear-gradient";
 import { Feather } from "@expo/vector-icons";
+import ExecutiveAnalyticsDashboard from "@/components/analytics/ExecutiveAnalyticsDashboard";
 
 interface Target {
   id: string;
@@ -77,8 +78,9 @@ interface IndexQueryData {
 }
 
 export default function Index() {
-  const [refreshing, setRefreshing] = useState(false);
   const salesmanType = useUserStore((state) => state.salesmanType);
+
+  const [refreshing, setRefreshing] = useState(false);
   const { colors, mode } = useAppTheme();
   const isDark = mode === 'dark';
   const bgColors = isDark ? ["#1E293B", "#0F172A", "#020617"] as const : ["#EFF6FF", "#F1F5F9", "#F8FAFC"] as const;
@@ -149,7 +151,7 @@ export default function Index() {
                 </View>
                 <ActivityLogsCard />
 
-                {salesmanType !== "OFFICE" && (
+                 {salesmanType !== "OFFICE" && (
                   <>
                     {/* Performance Summary Header */}
                     <View style={[styles.sectionHeader, { borderLeftColor: colors.primary }]}>
@@ -158,7 +160,7 @@ export default function Index() {
                     </View>
                     <View style={styles.cardsRow}>
                       <OutletChart />
-                      <TargetChart target={indexQuery.data.data.target} />
+                      <TargetChart target={indexQuery.data?.data?.target} />
                     </View>
                   </>
                 )}
@@ -168,7 +170,7 @@ export default function Index() {
                   <Feather name="calendar" size={16} color={colors.text.secondary} />
                   <Text style={[styles.sectionHeaderText, { color: colors.text.secondary }]}>Attendance Log</Text>
                 </View>
-                <AttendanceCard attendence={indexQuery.data.data.attendance} />
+                <AttendanceCard attendence={indexQuery.data?.data?.attendance} />
               </>
             ) : (
               <View style={styles.loadingWrapper}>

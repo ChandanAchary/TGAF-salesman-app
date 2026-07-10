@@ -1,6 +1,5 @@
 import TabBar from "@/components/ui/layout/TabBar";
 import { API_ROUTES } from "@/constants/ApiRoutes";
-import { primary, secondary, text, background, border, primaryLight } from "@/constants/Colors";
 import { api } from "@/lib/axios/axios";
 import { useQuery } from "@tanstack/react-query"
 import { useState, useMemo } from "react";
@@ -10,6 +9,7 @@ import { Feather } from '@expo/vector-icons';
 import { router } from "expo-router";
 import Avatar from "@/components/lazy/Avatar";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Theme, useAppTheme } from "@/constants/Theme";
 
 export interface DistributorSalesman {
   id: string;
@@ -40,6 +40,8 @@ interface MyDistributorResponse {
 }
 
 export default function MyDistributors() {
+  const { colors, mode } = useAppTheme();
+  const isDark = mode === 'dark';
   const [search, setSearch] = useState("");
   const myDistributorQuery = useQuery({
     queryKey: ["myDistributors"],
@@ -61,15 +63,15 @@ export default function MyDistributors() {
   }, [myDistributorQuery.data?.data, search]);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <TabBar title="DISTRIBUTORS">
         {/* Search bar */}
-        <View style={styles.searchBarContainer}>
-          <Feather name="search" size={18} color={text.secondary} style={{ marginRight: 8 }} />
+        <View style={[styles.searchBarContainer, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }]}>
+          <Feather name="search" size={18} color={colors.text.secondary} style={{ marginRight: 8 }} />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: colors.text.primary }]}
             placeholder="Search by name or phone"
-            placeholderTextColor={text.secondary}
+            placeholderTextColor={colors.text.secondary}
             value={search}
             onChangeText={setSearch}
             autoCorrect={false}
@@ -79,24 +81,26 @@ export default function MyDistributors() {
         </View>
       </TabBar>
 
-      <ScrollView contentContainerStyle={styles.contentContainer}
+      <ScrollView
+        contentContainerStyle={styles.contentContainer}
         refreshControl={
           <RefreshControl
             refreshing={myDistributorQuery.isRefetching}
             onRefresh={() => myDistributorQuery.refetch()}
-            tintColor={primary}
+            tintColor={colors.primary}
           />
-        }>
+        }
+      >
         {myDistributorQuery.isLoading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={primary} />
+            <ActivityIndicator size="large" color={colors.primary} />
           </View>
         ) : myDistributorQuery.isError ? (
           <View style={styles.errorContainer}>
             <MaterialIcons name="error-outline" size={24} color="#dc2626" />
-            <Text style={styles.errorText}>Failed to load distributors</Text>
+            <Text style={[styles.errorText, { color: colors.text.secondary }]}>Failed to load distributors</Text>
             <TouchableOpacity
-              style={styles.retryButton}
+              style={[styles.retryButton, { backgroundColor: colors.primary }]}
               onPress={() => myDistributorQuery.refetch()}
             >
               <Text style={styles.retryButtonText}>Try Again</Text>
@@ -107,12 +111,13 @@ export default function MyDistributors() {
             <Pressable
               style={({ pressed }) => [
                 styles.distributorCard,
+                { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: isDark ? 1 : 0 },
                 { opacity: pressed ? 0.85 : 1 }, // snappy feedback
               ]}
               key={distributor.id}
               onPress={() => { router.push(`/screens/distributor/distributorActions?id=${encodeURIComponent(distributor.distributor.id)}`) }}
             >
-              <View style={styles.avatarPlaceholder}>
+              <View style={[styles.avatarPlaceholder, { backgroundColor: isDark ? '#1e293b' : colors.primaryLight }]}>
                 <Avatar
                   src={distributor.distributor.avatar}
                   alt={distributor.distributor.name}
@@ -120,37 +125,36 @@ export default function MyDistributors() {
                 />
               </View>
               <View style={styles.distributorInfo}>
-                <Text style={styles.distributorName}>{distributor.distributor.name}</Text>
+                <Text style={[styles.distributorName, { color: colors.text.primary }]}>{distributor.distributor.name}</Text>
                 <View style={styles.infoRow}>
-                  <MaterialIcons name="phone" size={16} color={primary} />
-                  <Text style={styles.distributorPhone}>{distributor.distributor.phone}</Text>
+                  <MaterialIcons name="phone" size={16} color={colors.primary} />
+                  <Text style={[styles.distributorPhone, { color: colors.text.secondary }]}>{distributor.distributor.phone}</Text>
                 </View>
                 <View style={styles.infoRow}>
-                  <MaterialIcons name="location-on" size={16} color={"hotpink"} />
-                  <Text style={styles.distributorAddress} numberOfLines={1}>
+                  <MaterialIcons name="location-on" size={16} color={"#F43F5E"} />
+                  <Text style={[styles.distributorAddress, { color: colors.text.secondary }]} numberOfLines={1}>
                     {distributor.distributor.marketName}, {distributor.distributor.address}
                   </Text>
                 </View>
               </View>
-              {/* <MaterialIcons name="chevron-right" size={24} color={border} /> */}
             </Pressable>
           ))
         ) : (
           <View style={styles.emptyContainer}>
-            <MaterialIcons name="store-mall-directory" size={48} color={border} />
-            <Text style={styles.emptyText}>No distributors found</Text>
-            <Text style={styles.emptySubtext}>Add new distributors to get started</Text>
+            <MaterialIcons name="store-mall-directory" size={48} color={colors.border} />
+            <Text style={[styles.emptyText, { color: colors.text.primary }]}>No distributors found</Text>
+            <Text style={[styles.emptySubtext, { color: colors.text.secondary }]}>Add new distributors to get started</Text>
           </View>
         )}
       </ScrollView>
     </SafeAreaView>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: background,
+    backgroundColor: "#f5f5f5",
   },
   header: {
     paddingHorizontal: 16,
@@ -158,7 +162,7 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
     backgroundColor: 'white',
     borderBottomWidth: 1,
-    borderBottomColor: border,
+    borderBottomColor: "#e5e7eb",
   },
   refreshButton: {
     padding: 8,
@@ -180,11 +184,11 @@ const styles = StyleSheet.create({
   errorText: {
     marginTop: 12,
     marginBottom: 16,
-    color: text.primary,
+    color: "#111827",
     fontSize: 13,
   },
   retryButton: {
-    backgroundColor: primary,
+    backgroundColor: "#1d4ed8",
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
@@ -207,7 +211,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: secondary,
+    backgroundColor: "#e0e7ff",
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -218,7 +222,7 @@ const styles = StyleSheet.create({
   distributorName: {
     fontSize: 14,
     fontWeight: '600',
-    color: text.primary,
+    color: "#111827",
     marginBottom: 4,
   },
   infoRow: {
@@ -228,12 +232,12 @@ const styles = StyleSheet.create({
   },
   distributorPhone: {
     fontSize: 12,
-    color: text.secondary,
+    color: "#6b7280",
     marginLeft: 6,
   },
   distributorAddress: {
     fontSize: 12,
-    color: text.secondary,
+    color: "#6b7280",
     marginLeft: 6,
     flex: 1,
   },
@@ -245,12 +249,12 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 18,
     fontWeight: '500',
-    color: text.primary,
+    color: "#111827",
     marginTop: 16,
   },
   emptySubtext: {
     fontSize: 14,
-    color: text.secondary,
+    color: "#6b7280",
     marginTop: 4,
   },
   searchBarContainer: {
@@ -264,7 +268,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 15,
-    color: text.primary,
+    color: "#111827",
     paddingVertical: 16,
   },
 });

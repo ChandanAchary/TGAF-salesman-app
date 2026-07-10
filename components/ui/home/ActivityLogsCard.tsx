@@ -21,6 +21,7 @@ import Toast from "react-native-toast-message";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Theme, useAppTheme } from "@/constants/Theme";
 import * as Haptics from 'expo-haptics';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const primary = Theme.colors.primary;
 const primaryLight = Theme.colors.primaryLight;
@@ -78,7 +79,7 @@ export default function ActivityLogsCard() {
     }
   });
 
-  const ongoingActivity = getActivityLogs.data?.data.find(log => log.endTime === null);
+  const ongoingActivity = (getActivityLogs.data?.data || []).find(log => log && log.endTime === null);
 
   const startActivityMutation = useMutation({
     mutationFn: async (data: StartSalesmanActivityLogParams) => {
@@ -171,24 +172,34 @@ export default function ActivityLogsCard() {
         <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           {/* Ongoing Activity Section */}
           {ongoingActivity ? (
-            <View style={[styles.ongoingContainer, { backgroundColor: isDark ? "#064E3B20" : "#F0FDF4", borderColor: isDark ? "#064E3B50" : "#DCFCE7" }]}>
+            <LinearGradient
+              colors={isDark ? ['#022c22', '#064e3b'] : ['#E6FDF0', '#C6F6D5']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={[styles.ongoingContainer, { borderColor: isDark ? '#065f46' : '#86EFAC', borderWidth: 1 }]}
+            >
               <View style={styles.ongoingHeader}>
-                <Ionicons name="time-outline" size={16} color="#059669" />
-                <Text style={styles.ongoingLabel}>Ongoing Activity</Text>
+                <Ionicons name="time" size={16} color="#059669" />
+                <Text style={[styles.ongoingLabel, { color: '#059669' }]}>Ongoing Activity</Text>
               </View>
               <Text style={[styles.activityName, { color: colors.text.primary }]} numberOfLines={2}>
-                {ongoingActivity.activity.name}
+                {ongoingActivity.activity?.name || "Unknown Activity"}
               </Text>
               <Text style={[styles.duration, { color: colors.text.secondary }]}>
                 Started {formatDistanceToNow(new Date(ongoingActivity.createdAt), { addSuffix: true })}
               </Text>
-            </View>
+            </LinearGradient>
           ) : (
-            <View style={[styles.noActivityContainer, { backgroundColor: isDark ? colors.background : '#F8FAFC', borderColor: colors.border }]}>
-              <MaterialCommunityIcons name="clipboard-check-outline" size={32} color={colors.text.muted} />
+            <LinearGradient
+              colors={isDark ? ['#451a03', '#78350f'] : ['#FEF3C7', '#FDE68A']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={[styles.noActivityContainer, { borderColor: isDark ? '#92400e' : '#FCD34D', borderWidth: 1 }]}
+            >
+              <MaterialCommunityIcons name="clipboard-check-outline" size={32} color={isDark ? '#F59E0B' : '#D97706'} />
               <Text style={[styles.noActivityText, { color: colors.text.primary }]}>No ongoing activity</Text>
-              <Text style={[styles.noActivitySubtext, { color: colors.text.muted }]}>Start a new activity to track your work</Text>
-            </View>
+              <Text style={[styles.noActivitySubtext, { color: colors.text.secondary }]}>Start a new activity to track your work</Text>
+            </LinearGradient>
           )}
 
           {/* Action Buttons */}
@@ -256,7 +267,7 @@ export default function ActivityLogsCard() {
               </View>
             ) : (
               <ScrollView style={styles.selectContainer}>
-                {getActivityOptions.data?.data.map((activity) => (
+                {(getActivityOptions.data?.data || []).map((activity) => (
                   <TouchableOpacity
                     key={activity.id}
                     style={[

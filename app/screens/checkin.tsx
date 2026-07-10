@@ -1,13 +1,14 @@
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View, Alert } from "react-native";
 import WifiButton from "@/components/ui/WifiButton";
 import { useEffect, useState } from "react";
 import { Theme } from "@/constants/Theme";
 import { useIsOnline } from "@/hooks/useIsOnline";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { formatDate } from "@/lib/date/dateFormater";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/axios/axios";
 import { API_ROUTES } from "@/constants/ApiRoutes";
+import { tokenManager } from "@/lib/axios/tokenManager";
 import { useUserStore } from "@/store";
 import { errorHandler } from "@/lib/axios/errorHandler";
 import { salesmanType } from "@/shared/zod";
@@ -46,9 +47,33 @@ export default function Checkin() {
   const handleBack = () => {
     if (router.canGoBack()) {
       router.back();
-    } else {
-      router.replace("/auth/login");
     }
+  };
+
+  const queryClient = useQueryClient();
+
+  const confirmLogout = () => {
+    Alert.alert(
+      "Log Out",
+      "Are you sure you want to log out?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Log Out",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              queryClient.clear();
+              useUserStore.getState().setUser({});
+              await tokenManager.clearToken();
+              router.replace("/auth/login");
+            } catch (err) {
+              console.error("Logout failed:", err);
+            }
+          }
+        }
+      ]
+    );
   };
 
   const handleActivitySelect = (activity: "WORKING" | "TASK_FORCE" | "ON_LEAVE") => {
@@ -88,7 +113,15 @@ export default function Checkin() {
     if (myDetailsQuery.isError) {
       const { status } = errorHandler(myDetailsQuery.error)
       if (status == 401 || status == 403) {
-        isOnline ? router.replace("/auth/login") : confirm("Internet connection is required to login. Would you like to retry?") && router.replace("/auth/login");
+        if (isOnline) {
+          router.replace("/auth/login");
+        } else {
+          Alert.alert(
+            "Connection Required",
+            "Internet connection is required to login. Please connect to the internet and try again.",
+            [{ text: "OK", onPress: () => router.replace("/auth/login") }]
+          );
+        }
       }
     }
   }, [myDetailsQuery.error]);
@@ -145,23 +178,26 @@ export default function Checkin() {
         />
         <SafeAreaView style={{ flex: 1 }}>
           <View style={styles.container}>
-            {/* Header */}
             <View style={styles.header}>
               <View style={styles.userInfo}>
-                <TouchableOpacity onPress={handleBack} style={styles.backButton} activeOpacity={0.7}>
-                  <Feather name="chevron-left" size={24} color="#FFFFFF" />
+                {router.canGoBack() && (
+                  <TouchableOpacity onPress={handleBack} style={styles.backButton} activeOpacity={0.7}>
+                    <Feather name="chevron-left" size={24} color="#FFFFFF" />
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity onPress={confirmLogout} activeOpacity={0.7}>
+                  <Avatar
+                    src={myDetailsQuery.data?.data?.avatar ?? undefined}
+                    alt={myDetailsQuery.data?.data?.name ?? "N"}
+                    size={50}
+                  />
                 </TouchableOpacity>
-                <Avatar
-                  src={myDetailsQuery.data?.data.avatar ?? undefined}
-                  alt={myDetailsQuery.data?.data.name ?? "N"}
-                  size={50}
-                />
                 <View style={styles.userText}>
                   <Text style={styles.userName}>
-                    Hi, {myDetailsQuery.data?.data.name.split(" ")[0]}
+                    Hi, {myDetailsQuery.data?.data?.name?.split(" ")?.[0] || "User"}
                   </Text>
                   <Text style={styles.userRole}>
-                    {myDetailsQuery.data?.data.salesmanType.replace("_", " ")}
+                    {myDetailsQuery.data?.data?.salesmanType?.replace("_", " ") || "SALESMAN"}
                   </Text>
                 </View>
               </View>

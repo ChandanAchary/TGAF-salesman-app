@@ -3,7 +3,7 @@ import { api } from "@/lib/axios/axios";
 import { useQuery } from "@tanstack/react-query";
 import { ActivityIndicator, Image, StyleSheet, Text, View, ScrollView, FlatList, TouchableOpacity } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { Theme } from "@/constants/Theme";
+import { Theme, useAppTheme } from "@/constants/Theme";
 import Pfp from "@/components/lazy/Pfp";
 import { useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
@@ -45,6 +45,8 @@ interface LeaderBoardData {
 
 export default function Reports() {
   const [showAll, setShowAll] = useState(false);
+  const { colors, mode } = useAppTheme();
+  const isDark = mode === 'dark';
 
   const leaderBoardQuery = useQuery({
     queryKey: ["leaderboard-report"],
@@ -73,7 +75,7 @@ export default function Reports() {
     );
   }
 
-  const { leaderboard, myRank } = leaderBoardQuery.data.data;
+  const { leaderboard = [], myRank = null } = leaderBoardQuery.data?.data || {};
 
   if (leaderboard.length === 0) {
     return (
@@ -89,7 +91,7 @@ export default function Reports() {
   const displayedList = showAll ? restOfList : restOfList.slice(0, 7);
   const hasMore = restOfList.length > 7;
   const betterThan = myRank
-    ? leaderboard.filter(item => item.points < myRank.points).length
+    ? leaderboard.filter(item => item && myRank && item.points < myRank.points).length
     : 0;
 
   const topImages = [
@@ -99,203 +101,211 @@ export default function Reports() {
   ];
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#0045F4" }}>
+    <View style={{ flex: 1, backgroundColor: isDark ? colors.background : "#0045F4" }}>
+      {/* Premium deep gradient bg */}
       <LinearGradient
-        colors={[Theme.colors.primaryDark, "#5B21B6"]} // Premium deep blue to violet gradient
+        colors={isDark ? [colors.background, "#1E1B4B"] : [Theme.colors.primaryDark, "#5B21B6"]}
         style={StyleSheet.absoluteFillObject}
       />
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
-        <Image
-          source={require("@/assets/images/confetti.webp")}
-          style={styles.confettiOverlay}
-        />
-        
-        {/* Your Rank Banner */}
-        {myRank?.rank !== undefined ? (
-          <View style={styles.rankContainer}>
-            <View style={styles.rankBox}>
-              <Text style={styles.rankText}>#{myRank?.rank}</Text>
-            </View>
-            <View style={styles.rankTextContainer}>
-              <Text style={styles.rankText2}>
-                {betterThan === 0 
-                  ? "Keep pushing! Make your first sales to climb the ranks." 
-                  : `You are outperforming ${betterThan} other salesmen!`}
-              </Text>
+      <FlatList
+        data={displayedList}
+        keyExtractor={item => item?.salesman?.id || String(Math.random())}
+        renderItem={({ item, index }) => (
+          <View style={{ backgroundColor: colors.background, paddingHorizontal: 20, paddingVertical: 0 }}>
+            <View style={[styles.rankCard, { backgroundColor: colors.surface, borderColor: colors.border, marginBottom: 10 }]}>
+              <View style={styles.rankCardLeft}>
+                <Pfp
+                  size={48}
+                  src={item?.salesman?.avatar}
+                  alt={item?.salesman?.name}
+                />
+                <View style={styles.rankCardInfo}>
+                  <Text style={[styles.cardName, { color: colors.text.primary }]}>{item?.salesman?.name || "Unknown"}</Text>
+                  <Text style={[styles.cardPoints, { color: colors.text.secondary }]}>{item?.points || 0} points</Text>
+                </View>
+              </View>
+              <View style={[styles.rankCircle, { backgroundColor: colors.primaryLight }]}>
+                <Text style={[styles.rankCircleText, { color: colors.primary }]}>#{index + 4}</Text>
+              </View>
             </View>
           </View>
-        ) : (
-          <View style={{ marginTop: 60 }}></View>
         )}
-
-        {/* Podium Area */}
-        <View style={styles.podiumContainer}>
-          {/* 2nd place */}
-          {topThree[1] && (
-            <View style={[styles.podiumSpot, { marginTop: 50 }]}>
-              <View style={styles.avatarBorder}>
-                <Pfp
-                  size={56}
-                  alt={topThree[1].salesman.name}
-                  src={topThree[1].salesman.avatar}
-                />
-              </View>
-              <Text style={styles.podiumName} numberOfLines={1}>
-                {topThree[1].salesman.name.split(" ")[0]}
-              </Text>
-              <View style={styles.tagContainer}>
-                <Text style={styles.tagText}>{topThree[1].points} pts</Text>
-              </View>
-            </View>
-          )}
-
-          {/* 1st place */}
-          {topThree[0] && (
-            <View style={styles.podiumSpot}>
-              <View style={[styles.avatarBorder, styles.goldBorder]}>
-                <Pfp
-                  size={70}
-                  alt={topThree[0].salesman.name}
-                  src={topThree[0].salesman.avatar}
-                />
-              </View>
-              <Text style={[styles.podiumName, styles.goldText]} numberOfLines={1}>
-                {topThree[0].salesman.name.split(" ")[0]}
-              </Text>
-              <View style={[styles.tagContainer, styles.goldTag]}>
-                <Text style={styles.goldTagText}>{topThree[0].points} pts</Text>
-              </View>
-            </View>
-          )}
-
-          {/* 3rd place */}
-          {topThree[2] && (
-            <View style={[styles.podiumSpot, { marginTop: 50 }]}>
-              <View style={styles.avatarBorder}>
-                <Pfp
-                  size={56}
-                  alt={topThree[2].salesman.name}
-                  src={topThree[2].salesman.avatar}
-                />
-              </View>
-              <Text style={styles.podiumName} numberOfLines={1}>
-                {topThree[2].salesman.name.split(" ")[0]}
-              </Text>
-              <View style={styles.tagContainer}>
-                <Text style={styles.tagText}>{topThree[2].points} pts</Text>
-              </View>
-            </View>
-          )}
-        </View>
-
-        {/* Board graphics buffer */}
-        <View style={styles.boardGraphicContainer}>
-          <Image
-            source={require("@/assets/images/board.png")}
-            style={styles.boardGraphic}
-          />
-        </View>
-
-        {/* Leaderboard Section - List */}
-        <View style={styles.listContainer}>
-          <View style={styles.listPadding}>
+        ListHeaderComponent={
+          <>
+            <Image
+              source={require("@/assets/images/confetti.webp")}
+              style={styles.confettiOverlay}
+            />
             
-            {/* Top 3 mapped items */}
-            {topThree.map((item, idx) => (
-              <View key={item.salesman.id} style={styles.rankCard}>
-                <View style={styles.rankCardLeft}>
-                  <Pfp
-                    size={48}
-                    src={item.salesman.avatar}
-                    alt={item.salesman.name}
-                  />
-                  <View style={styles.rankCardInfo}>
-                    <Text style={styles.cardName}>{item.salesman.name}</Text>
-                    <Text style={styles.cardPoints}>{item.points || 0} points</Text>
-                  </View>
+            {/* Your Rank Banner */}
+            {myRank?.rank !== undefined ? (
+              <View style={[styles.rankContainer, { backgroundColor: isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(255, 255, 255, 0.15)", borderColor: isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(255, 255, 255, 0.2)" }]}>
+                <View style={[styles.rankBox, { backgroundColor: isDark ? colors.surface : "#FFFFFF" }]}>
+                  <Text style={[styles.rankText, { color: isDark ? colors.text.primary : Theme.colors.primaryDark }]}>#{myRank?.rank}</Text>
                 </View>
-                <Image
-                  source={topImages[idx]}
-                  style={styles.crownImage}
-                />
+                <View style={styles.rankTextContainer}>
+                  <Text style={styles.rankText2}>
+                    {betterThan === 0 
+                      ? "Keep pushing! Make your first sales to climb the ranks." 
+                      : `You are outperforming ${betterThan} other salesmen!`}
+                  </Text>
+                </View>
               </View>
-            ))}
+            ) : (
+              <View style={{ marginTop: 60 }}></View>
+            )}
 
-            {/* Ranks 4+ */}
-            <FlatList
-              data={displayedList}
-              keyExtractor={item => item.salesman.id}
-              renderItem={({ item, index }) => (
-                <View style={styles.rankCard}>
-                  <View style={styles.rankCardLeft}>
+            {/* Podium Area */}
+            <View style={styles.podiumContainer}>
+              {/* 2nd place */}
+              {topThree[1] && (
+                <View style={[styles.podiumSpot, { marginTop: 50 }]}>
+                  <View style={styles.avatarBorder}>
                     <Pfp
-                      size={48}
-                      src={item.salesman.avatar}
-                      alt={item.salesman.name}
+                      size={56}
+                      alt={topThree[1].salesman?.name}
+                      src={topThree[1].salesman?.avatar}
                     />
-                    <View style={styles.rankCardInfo}>
-                      <Text style={styles.cardName}>{item.salesman.name}</Text>
-                      <Text style={styles.cardPoints}>{item.points || 0} points</Text>
-                    </View>
                   </View>
-                  <View style={styles.rankCircle}>
-                    <Text style={styles.rankCircleText}>#{index + 4}</Text>
+                  <Text style={styles.podiumName} numberOfLines={1}>
+                    {(topThree[1].salesman?.name || "Unknown").split(" ")[0]}
+                  </Text>
+                  <View style={styles.tagContainer}>
+                    <Text style={styles.tagText}>{topThree[1].points} pts</Text>
                   </View>
                 </View>
               )}
-              scrollEnabled={false}
-            />
 
-            {/* Show More Button */}
-            {hasMore && !showAll && (
-              <TouchableOpacity 
-                style={styles.showMoreButton}
-                onPress={() => setShowAll(true)}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.showMoreText}>
-                  Show More ({restOfList.length - 7} more)
-                </Text>
-                <MaterialIcons name="keyboard-arrow-down" size={20} color={Theme.colors.primary} />
-              </TouchableOpacity>
-            )}
-
-            {/* Show Less Button */}
-            {showAll && hasMore && (
-              <TouchableOpacity 
-                style={styles.showMoreButton}
-                onPress={() => setShowAll(false)}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.showMoreText}>Show Less</Text>
-                <MaterialIcons name="keyboard-arrow-up" size={20} color={Theme.colors.primary} />
-              </TouchableOpacity>
-            )}
-
-            {/* My Rank Card (if not in top 10) */}
-            {myRank && !topThree.some(t => t.salesman.id === myRank.id) && !restOfList.some(t => t.salesman.id === myRank.id) && (
-              <View style={[styles.rankCard, styles.mySelfHighlightCard]}>
-                <View style={styles.rankCardLeft}>
-                  <Pfp
-                    size={48}
-                    src={myRank.avatar}
-                    alt={myRank.name}
-                  />
-                  <View style={styles.rankCardInfo}>
-                    <Text style={[styles.cardName, { color: '#FFFFFF' }]}>{myRank.name} (You)</Text>
-                    <Text style={[styles.cardPoints, { color: 'rgba(255,255,255,0.7)' }]}>{myRank.points || 0} points</Text>
+              {/* 1st place */}
+              {topThree[0] && (
+                <View style={styles.podiumSpot}>
+                  <View style={[styles.avatarBorder, styles.goldBorder]}>
+                    <Pfp
+                      size={70}
+                      alt={topThree[0].salesman?.name}
+                      src={topThree[0].salesman?.avatar}
+                    />
+                  </View>
+                  <Text style={[styles.podiumName, styles.goldText]} numberOfLines={1}>
+                    {(topThree[0].salesman?.name || "Unknown").split(" ")[0]}
+                  </Text>
+                  <View style={[styles.tagContainer, styles.goldTag]}>
+                    <Text style={styles.goldTagText}>{topThree[0].points} pts</Text>
                   </View>
                 </View>
-                <View style={[styles.rankCircle, { backgroundColor: '#FFFFFF' }]}>
-                  <Text style={[styles.rankCircleText, { color: Theme.colors.primary }]}>#{myRank.rank}</Text>
-                </View>
-              </View>
-            )}
-          </View>
+              )}
 
-          <View style={{ paddingBottom: 110 }}></View>
-        </View>
-      </ScrollView>
+              {/* 3rd place */}
+              {topThree[2] && (
+                <View style={[styles.podiumSpot, { marginTop: 50 }]}>
+                  <View style={styles.avatarBorder}>
+                    <Pfp
+                      size={56}
+                      alt={topThree[2].salesman?.name}
+                      src={topThree[2].salesman?.avatar}
+                    />
+                  </View>
+                  <Text style={styles.podiumName} numberOfLines={1}>
+                    {(topThree[2].salesman?.name || "Unknown").split(" ")[0]}
+                  </Text>
+                  <View style={styles.tagContainer}>
+                    <Text style={styles.tagText}>{topThree[2].points} pts</Text>
+                  </View>
+                </View>
+              )}
+            </View>
+
+            {/* Board graphics buffer */}
+            <View style={styles.boardGraphicContainer}>
+              <Image
+                source={require("@/assets/images/board.png")}
+                style={styles.boardGraphic}
+              />
+            </View>
+
+            {/* Start of ListContainer */}
+            <View style={[styles.listContainer, { backgroundColor: colors.background, minHeight: 0 }]}>
+              <View style={[styles.listPadding, { paddingBottom: 0 }]}>
+                {/* Top 3 mapped items rendered as cards inside header */}
+                {topThree.map((item, idx) => (
+                  <View key={item?.salesman?.id || idx} style={[styles.rankCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                    <View style={styles.rankCardLeft}>
+                      <Pfp
+                        size={48}
+                        src={item?.salesman?.avatar}
+                        alt={item?.salesman?.name}
+                      />
+                      <View style={styles.rankCardInfo}>
+                        <Text style={[styles.cardName, { color: colors.text.primary }]}>{item?.salesman?.name || "Unknown"}</Text>
+                        <Text style={[styles.cardPoints, { color: colors.text.secondary }]}>{item?.points || 0} points</Text>
+                      </View>
+                    </View>
+                    <Image
+                      source={topImages[idx]}
+                      style={styles.crownImage}
+                    />
+                  </View>
+                ))}
+              </View>
+            </View>
+          </>
+        }
+        ListFooterComponent={
+          <View style={[styles.listContainer, { backgroundColor: colors.background, borderTopRightRadius: 0, borderTopLeftRadius: 0, minHeight: 0 }]}>
+            <View style={[styles.listPadding, { paddingTop: 0 }]}>
+              {/* Show More Button */}
+              {hasMore && !showAll && (
+                <TouchableOpacity 
+                  style={[styles.showMoreButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                  onPress={() => setShowAll(true)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[styles.showMoreText, { color: colors.primary }]}>
+                    Show More ({restOfList.length - 7} more)
+                  </Text>
+                  <MaterialIcons name="keyboard-arrow-down" size={20} color={colors.primary} />
+                </TouchableOpacity>
+              )}
+
+              {/* Show Less Button */}
+              {showAll && hasMore && (
+                <TouchableOpacity 
+                  style={[styles.showMoreButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                  onPress={() => setShowAll(false)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[styles.showMoreText, { color: colors.primary }]}>Show Less</Text>
+                  <MaterialIcons name="keyboard-arrow-up" size={20} color={colors.primary} />
+                </TouchableOpacity>
+              )}
+
+              {/* My Rank Card (if not in top 10) */}
+              {myRank && !topThree.some(t => t?.salesman?.id === myRank.id) && !restOfList.some(t => t?.salesman?.id === myRank.id) && (
+                <View style={[styles.rankCard, styles.mySelfHighlightCard]}>
+                  <View style={styles.rankCardLeft}>
+                    <Pfp
+                      size={48}
+                      src={myRank.avatar}
+                      alt={myRank.name}
+                    />
+                    <View style={styles.rankCardInfo}>
+                      <Text style={[styles.cardName, { color: '#FFFFFF' }]}>{myRank.name} (You)</Text>
+                      <Text style={[styles.cardPoints, { color: 'rgba(255,255,255,0.7)' }]}>{myRank.points || 0} points</Text>
+                    </View>
+                  </View>
+                  <View style={[styles.rankCircle, { backgroundColor: '#FFFFFF' }]}>
+                    <Text style={[styles.rankCircleText, { color: colors.primary }]}>#{myRank.rank}</Text>
+                  </View>
+                </View>
+              )}
+              
+              <View style={{ paddingBottom: 110 }}></View>
+            </View>
+          </View>
+        }
+        contentContainerStyle={{ flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
+      />
     </View>
   );
 }

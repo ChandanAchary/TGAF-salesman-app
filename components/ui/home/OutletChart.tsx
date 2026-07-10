@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/axios/axios";
 import { API_ROUTES } from "@/constants/ApiRoutes";
 import { Response } from "@/lib/types/types";
+import { useAppTheme } from "@/constants/Theme";
 
 interface OutletStatsResponse extends Response {
   data: {
@@ -17,6 +18,8 @@ interface OutletStatsResponse extends Response {
 }
 
 export default function OutletChart() {
+  const { colors, mode } = useAppTheme();
+  const isDark = mode === 'dark';
 
   const outletStats = useQuery({
     queryKey: ["outletstats"],
@@ -24,17 +27,17 @@ export default function OutletChart() {
       const res = await api.get<OutletStatsResponse>(API_ROUTES.ROUTE.GET_ALL_OUTLET_STATS);
       return res.data;
     }
-  })
+  });
 
   // Loading state
   if (outletStats.isLoading) {
     return (
       <View style={styles.container}>
         <LinearGradient
-          colors={['#ffffff', '#f8fafc']}
-          style={[styles.card, { height: 140, justifyContent: 'center', alignItems: 'center' }]}
+          colors={isDark ? [colors.surface, colors.surface] : ['#ffffff', '#f8fafc']}
+          style={[styles.card, { height: 140, justifyContent: 'center', alignItems: 'center', borderColor: colors.border }]}
         >
-          <Text style={styles.loadingText}>Loading Stats...</Text>
+          <Text style={[styles.loadingText, { color: colors.text.secondary }]}>Loading Stats...</Text>
         </LinearGradient>
       </View>
     );
@@ -45,8 +48,8 @@ export default function OutletChart() {
     return (
       <View style={styles.container}>
         <LinearGradient
-          colors={['#FFF1F2', '#FFE4E6']}
-          style={[styles.card, { height: 140, justifyContent: 'center', alignItems: 'center' }]}
+          colors={isDark ? [colors.surface, colors.surface] : ['#FFF1F2', '#FFE4E6']}
+          style={[styles.card, { height: 140, justifyContent: 'center', alignItems: 'center', borderColor: colors.border }]}
         >
           <Text style={styles.errorText}>Unable to load stats</Text>
         </LinearGradient>
@@ -54,13 +57,13 @@ export default function OutletChart() {
     );
   }
 
-  const stats = outletStats.data.data;
+  const stats = outletStats.data?.data || {};
 
   // Defensive fallback for all stats
-  const effectiveCalls = typeof stats.effectiveCalls === "number" ? stats.effectiveCalls : 0;
-  const totalOutletsAssigned = typeof stats.totalOutletsAssigned === "number" ? stats.totalOutletsAssigned : 0;
-  const totalOutletsVisited = typeof stats.totalOutletsVisited === "number" ? stats.totalOutletsVisited : 0;
-  const totalCollectionDone = typeof stats.totalCollectionDone === "number" ? stats.totalCollectionDone : 0;
+  const effectiveCalls = stats && typeof stats.effectiveCalls === "number" ? stats.effectiveCalls : 0;
+  const totalOutletsAssigned = stats && typeof stats.totalOutletsAssigned === "number" ? stats.totalOutletsAssigned : 0;
+  const totalOutletsVisited = stats && typeof stats.totalOutletsVisited === "number" ? stats.totalOutletsVisited : 0;
+  const totalCollectionDone = stats && typeof stats.totalCollectionDone === "number" ? stats.totalCollectionDone : 0;
 
   // Calculate progress (visited/assigned)
   const progress = totalOutletsAssigned > 0
@@ -77,24 +80,24 @@ export default function OutletChart() {
 
   const pieData = [
     { value: totalOutletsVisited, color: progressColor, gradientCenterColor: progressGradient[1] },
-    { value: Math.max(0, totalOutletsAssigned - totalOutletsVisited), color: "#E2E8F0" },
+    { value: Math.max(0, totalOutletsAssigned - totalOutletsVisited), color: isDark ? '#334155' : '#E2E8F0' },
   ];
 
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={['#FFFFFF', '#F8FAFC']}
-        style={styles.card}
+        colors={isDark ? [colors.surface, colors.surface] : ['#FFFFFF', '#F8FAFC']}
+        style={[styles.card, { borderColor: colors.border }]}
       >
         {/* Left Section: Stats */}
         <View style={styles.statsSection}>
 
           {/* Header */}
           <View style={styles.headerRow}>
-            <View style={styles.iconBadge}>
+            <View style={[styles.iconBadge, { backgroundColor: isDark ? 'rgba(99, 102, 241, 0.15)' : '#EEF2FF' }]}>
               <Target size={16} color="#6366F1" weight="fill" />
             </View>
-            <Text style={styles.cardTitle}>Outlet Performance</Text>
+            <Text style={[styles.cardTitle, { color: colors.text.primary }]}>Outlet Performance</Text>
           </View>
 
           {/* Stats Grid */}
@@ -102,33 +105,33 @@ export default function OutletChart() {
 
             {/* Effective Calls Pill */}
             <LinearGradient
-              colors={['#EFF6FF', '#DBEAFE']}
-              style={styles.statPill}
+              colors={isDark ? ['#1e293b', '#0f172a'] : ['#EFF6FF', '#DBEAFE']}
+              style={[styles.statPill, { borderColor: isDark ? colors.border : 'rgba(255,255,255,0.6)' }]}
             >
-              <View style={[styles.pillIcon, { backgroundColor: '#BFDBFE' }]}>
-                <ShoppingCartSimple size={14} color="#2563EB" weight="fill" />
+              <View style={[styles.pillIcon, { backgroundColor: isDark ? '#334155' : '#BFDBFE' }]}>
+                <ShoppingCartSimple size={14} color={isDark ? colors.primary : '#2563EB'} weight="fill" />
               </View>
-              <View>
-                <Text style={styles.pillValue}>{effectiveCalls}</Text>
-                <Text style={styles.pillLabel}>Effective</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.pillValue, { color: colors.text.primary }]}>{effectiveCalls}</Text>
+                <Text style={[styles.pillLabel, { color: colors.text.secondary }]}>Effective</Text>
               </View>
             </LinearGradient>
 
             {/* Total Value Pill */}
             <LinearGradient
-              colors={['#ECFDF5', '#D1FAE5']}
-              style={styles.statPill}
+              colors={isDark ? ['#14532d', '#052e16'] : ['#ECFDF5', '#D1FAE5']}
+              style={[styles.statPill, { borderColor: isDark ? colors.border : 'rgba(255,255,255,0.6)' }]}
             >
-              <View style={[styles.pillIcon, { backgroundColor: '#A7F3D0' }]}>
-                <TrendUp size={14} color="#059669" weight="bold" />
+              <View style={[styles.pillIcon, { backgroundColor: isDark ? '#15803d' : '#A7F3D0' }]}>
+                <TrendUp size={14} color={isDark ? '#4ade80' : '#059669'} weight="bold" />
               </View>
-              <View>
-                <Text style={[styles.pillValue, { color: '#059669' }]}>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.pillValue, { color: isDark ? '#4ade80' : '#059669' }]}>
                   {totalCollectionDone >= 1000
                     ? `${(totalCollectionDone / 1000).toFixed(1)}k`
                     : totalCollectionDone}
                 </Text>
-                <Text style={[styles.pillLabel, { color: '#047857' }]}>Collected</Text>
+                <Text style={[styles.pillLabel, { color: isDark ? '#4ade80' : '#047857' }]}>Collected</Text>
               </View>
             </LinearGradient>
 
@@ -136,7 +139,7 @@ export default function OutletChart() {
         </View>
 
         {/* Right Section: Chart */}
-        <View style={styles.chartSection}>
+        <View style={[styles.chartSection, { borderLeftColor: colors.border }]}>
           <View style={styles.chartWrapper}>
             <PieChart
               donut
@@ -150,8 +153,8 @@ export default function OutletChart() {
               )}
             />
           </View>
-          <View style={styles.targetBadge}>
-            <Text style={styles.targetBadgeText}>
+          <View style={[styles.targetBadge, { backgroundColor: isDark ? '#1e293b' : '#F8FAFC', borderColor: colors.border }]}>
+            <Text style={[styles.targetBadgeText, { color: colors.text.secondary }]}>
               {totalOutletsVisited} / {totalOutletsAssigned}
             </Text>
           </View>

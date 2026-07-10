@@ -1,6 +1,6 @@
 import TabBar from "@/components/ui/layout/TabBar";
 import { API_ROUTES } from "@/constants/ApiRoutes";
-import { secondary } from "@/constants/Colors";
+import { Theme, useAppTheme } from "@/constants/Theme";
 import { useRefreshOnFocus } from "@/hooks/useRefetchOnFocus";
 import { api } from "@/lib/axios/axios";
 import { errorHandler } from "@/lib/axios/errorHandler";
@@ -54,6 +54,8 @@ interface ProductResponse {
 }
 
 export default function CreateOrderScreen() {
+  const { colors, mode } = useAppTheme();
+  const isDark = mode === 'dark';
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -310,50 +312,51 @@ export default function CreateOrderScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: secondary }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       <TabBar title="Place Order" />
       <ScrollView
-        contentContainerStyle={styles.container}
+        contentContainerStyle={[styles.container, { backgroundColor: colors.background }]}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.stepHeader}>
-          <Text style={styles.stepTitle}>Step {step} of 3</Text>
-          <View style={styles.stepBarTrack}>
-            <View style={[styles.stepBarFill, { width: `${(step / 3) * 100}%` }]} />
+        <View style={[styles.stepHeader, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: isDark ? 1 : 0 }]}>
+          <Text style={[styles.stepTitle, { color: colors.text.secondary }]}>Step {step} of 3</Text>
+          <View style={[styles.stepBarTrack, { backgroundColor: isDark ? '#1e293b' : '#ddd' }]}>
+            <View style={[styles.stepBarFill, { width: `${(step / 3) * 100}%`, backgroundColor: colors.primary }]} />
           </View>
-          <Text style={styles.stepSubtitle}>{stepLabels[step - 1]}</Text>
+          <Text style={[styles.stepSubtitle, { color: colors.text.primary }]}>{stepLabels[step - 1]}</Text>
         </View>
 
         {step === 1 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Select Products</Text>
-            <Text style={styles.sectionSubtitle}>Tap + or - to adjust quantity</Text>
+          <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: isDark ? 1 : 0 }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Select Products</Text>
+            <Text style={[styles.sectionSubtitle, { color: colors.text.secondary }]}>Tap + or - to adjust quantity</Text>
             {productQuery.isLoading ? (
-              <ActivityIndicator size="small" color="#007bff" />
+              <ActivityIndicator size="small" color={colors.primary} />
             ) : productQuery.isError ? (
               <Text style={styles.errorText}>Failed to load products</Text>
             ) : (
               productQuery.data?.data.map((product) => (
-                <View key={product.id} style={styles.productCard}>
+                <View key={product.id} style={[styles.productCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                   <Image
                     source={{ uri: product.productImg }}
                     style={styles.image}
                     resizeMode="cover"
                   />
                   <View style={styles.productInfo}>
-                    <Text style={styles.name} numberOfLines={2}>{product.name}</Text>
-                    <Text style={styles.price}>₦{product.price?.toLocaleString() ?? "N/A"}</Text>
+                    <Text style={[styles.name, { color: colors.text.primary }]} numberOfLines={2}>{product.name}</Text>
+                    <Text style={[styles.price, { color: colors.primary }]}>₦{product.price?.toLocaleString() ?? "N/A"}</Text>
                     <View style={styles.quantityRow}>
                       <Pressable
-                        style={styles.qtyButton}
+                        style={[styles.qtyButton, { borderColor: colors.border, backgroundColor: isDark ? '#1e293b' : '#f3f7ff' }]}
                         onPress={() => decrementQuantity(product.id)}
                         disabled={isUploading}
                       >
-                        <Text style={styles.qtyButtonText}>-</Text>
+                        <Text style={[styles.qtyButtonText, { color: colors.primary }]}>-</Text>
                       </Pressable>
                       <TextInput
-                        style={styles.input}
+                        style={[styles.input, { color: colors.text.primary, borderColor: colors.border, backgroundColor: isDark ? '#1e293b' : '#f9fafb' }]}
                         placeholder="0"
+                        placeholderTextColor={colors.text.muted}
                         keyboardType="numeric"
                         onChangeText={(value) =>
                           handleQuantityChange(product.id, value)
@@ -362,15 +365,15 @@ export default function CreateOrderScreen() {
                         editable={!isUploading}
                       />
                       <Pressable
-                        style={styles.qtyButton}
+                        style={[styles.qtyButton, { borderColor: colors.border, backgroundColor: isDark ? '#1e293b' : '#f3f7ff' }]}
                         onPress={() => incrementQuantity(product.id)}
                         disabled={isUploading}
                       >
-                        <Text style={styles.qtyButtonText}>+</Text>
+                        <Text style={[styles.qtyButtonText, { color: colors.primary }]}>+</Text>
                       </Pressable>
                       <View style={styles.itemTotal}>
-                        <Text style={styles.itemTotalLabel}>Subtotal</Text>
-                        <Text style={styles.itemTotalAmount}>
+                        <Text style={[styles.itemTotalLabel, { color: colors.text.secondary }]}>Subtotal</Text>
+                        <Text style={[styles.itemTotalAmount, { color: colors.text.primary }]}>
                           ₦{((product.price ?? 0) * (quantities[product.id] ?? 0)).toLocaleString()}
                         </Text>
                       </View>
@@ -380,27 +383,27 @@ export default function CreateOrderScreen() {
               ))
             )}
 
-            <View style={styles.orderHint}>
-              <Text style={styles.orderHintText}>
+            <View style={[styles.orderHint, { backgroundColor: isDark ? '#1e293b' : '#f6f8fb' }]}>
+              <Text style={[styles.orderHintText, { color: colors.text.secondary }]}>
                 {selectedItems.length ? `${selectedItems.length} item(s) selected` : "No items selected"}
               </Text>
-              <Text style={styles.orderHintTotal}>₦{totalPrice.toLocaleString()}</Text>
+              <Text style={[styles.orderHintTotal, { color: colors.primary }]}>₦{totalPrice.toLocaleString()}</Text>
             </View>
           </View>
         )}
 
         {step === 2 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Payment Proof</Text>
-            <Text style={styles.sectionSubtitle}>Upload screenshot of payment confirmation</Text>
+          <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: isDark ? 1 : 0 }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Payment Proof</Text>
+            <Text style={[styles.sectionSubtitle, { color: colors.text.secondary }]}>Upload screenshot of payment confirmation</Text>
 
             <TouchableOpacity
-              style={styles.uploadButton}
+              style={[styles.uploadButton, { borderColor: colors.primary, backgroundColor: isDark ? '#1e293b' : '#f8f9fa' }]}
               onPress={pickImage}
               disabled={isUploading}
             >
-              <Ionicons name="cloud-upload" size={20} color="#007bff" />
-              <Text style={styles.uploadButtonText}>
+              <Ionicons name="cloud-upload" size={20} color={colors.primary} />
+              <Text style={[styles.uploadButtonText, { color: colors.primary }]}>
                 {selectedImages.length ? 'Add More Images' : 'Select Images'}
               </Text>
             </TouchableOpacity>
@@ -430,39 +433,42 @@ export default function CreateOrderScreen() {
 
         {step === 3 && (
           <>
-            <View style={styles.section}>
+            <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: isDark ? 1 : 0 }]}>
               <View style={styles.megaHeader}>
                 <Switch
                   value={isMega}
                   onValueChange={setIsMega}
                   disabled={isUploading}
                   trackColor={{ false: "#767577", true: "#81b0ff" }}
-                  thumbColor={isMega ? "#007bff" : "#f4f3f4"}
+                  thumbColor={isMega ? colors.primary : "#f4f3f4"}
                 />
-                <Text style={styles.megaLabel}>Is this a Mega Order?</Text>
+                <Text style={[styles.megaLabel, { color: colors.text.primary }]}>Is this a Mega Order?</Text>
               </View>
 
               {isMega && (
                 <View style={styles.megaForm}>
-                  <Text style={styles.megaFormTitle}>Mega Order Details</Text>
+                  <Text style={[styles.megaFormTitle, { color: colors.text.secondary }]}>Mega Order Details</Text>
                   <TextInput
-                    style={styles.textInput}
+                    style={[styles.textInput, { color: colors.text.primary, borderColor: colors.border, backgroundColor: isDark ? '#1e293b' : '#f8f9fa' }]}
                     placeholder="Customer Name"
+                    placeholderTextColor={colors.text.muted}
                     value={megaName}
                     onChangeText={setMegaName}
                     editable={!isUploading}
                   />
                   <TextInput
-                    style={styles.textInput}
+                    style={[styles.textInput, { color: colors.text.primary, borderColor: colors.border, backgroundColor: isDark ? '#1e293b' : '#f8f9fa' }]}
                     placeholder="Customer Phone"
+                    placeholderTextColor={colors.text.muted}
                     value={megaPhone}
                     onChangeText={setMegaPhone}
                     keyboardType="phone-pad"
                     editable={!isUploading}
                   />
                   <TextInput
-                    style={[styles.textInput, { height: 80 }]}
+                    style={[styles.textInput, { height: 80, color: colors.text.primary, borderColor: colors.border, backgroundColor: isDark ? '#1e293b' : '#f8f9fa' }]}
                     placeholder="Delivery Address"
+                    placeholderTextColor={colors.text.muted}
                     value={megaAddress}
                     onChangeText={setMegaAddress}
                     multiline
@@ -473,23 +479,23 @@ export default function CreateOrderScreen() {
             </View>
 
             {selectedItems.length > 0 && (
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Order Summary</Text>
+              <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: isDark ? 1 : 0 }]}>
+                <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Order Summary</Text>
                 <View style={styles.summaryItems}>
                   {selectedItems.map((p) => (
-                    <View key={p.id} style={styles.summaryItem}>
-                      <Text style={styles.summaryName} numberOfLines={1}>
+                    <View key={p.id} style={[styles.summaryItem, { borderBottomColor: colors.border }]}>
+                      <Text style={[styles.summaryName, { color: colors.text.secondary }]} numberOfLines={1}>
                         {p.name} × {quantities[p.id]}
                       </Text>
-                      <Text style={styles.summaryPrice}>
+                      <Text style={[styles.summaryPrice, { color: colors.text.primary }]}>
                         ₦{((p.price ?? 0) * (quantities[p.id] ?? 0)).toLocaleString()}
                       </Text>
                     </View>
                   ))}
                 </View>
-                <View style={styles.summaryTotal}>
-                  <Text style={styles.totalLabel}>Total</Text>
-                  <Text style={styles.totalAmount}>₦{totalPrice.toLocaleString()}</Text>
+                <View style={[styles.summaryTotal, { borderTopColor: colors.border }]}>
+                  <Text style={[styles.totalLabel, { color: colors.text.primary }]}>Total</Text>
+                  <Text style={[styles.totalAmount, { color: colors.primary }]}>₦{totalPrice.toLocaleString()}</Text>
                 </View>
               </View>
             )}
@@ -502,13 +508,14 @@ export default function CreateOrderScreen() {
               style={({ pressed }) => [
                 styles.navButton,
                 styles.navButtonSecondary,
+                { backgroundColor: isDark ? '#1e293b' : '#eef2f8' },
                 styles.navButtonSpacing,
                 pressed && styles.submitButtonPressed,
               ]}
               onPress={handleBack}
               disabled={isUploading}
             >
-              <Text style={styles.navButtonTextSecondary}>Back</Text>
+              <Text style={[styles.navButtonTextSecondary, { color: colors.text.primary }]}>Back</Text>
             </Pressable>
           )}
 
@@ -516,6 +523,7 @@ export default function CreateOrderScreen() {
             <Pressable
               style={({ pressed }) => [
                 styles.navButton,
+                { backgroundColor: colors.primary },
                 pressed && styles.submitButtonPressed,
                 ((step === 1 && !canProceedStep1) || (step === 2 && !canProceedStep2)) && styles.submitButtonDisabled,
               ]}
@@ -534,6 +542,7 @@ export default function CreateOrderScreen() {
             <Pressable
               style={({ pressed }) => [
                 styles.navButton,
+                { backgroundColor: colors.primary },
                 pressed && styles.submitButtonPressed,
                 (isUploading || !canProceedStep3 || selectedItems.length === 0 || selectedImages.length === 0) && styles.submitButtonDisabled,
               ]}

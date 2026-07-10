@@ -1,8 +1,6 @@
 export function formatPrice(price: number): string {
-  return price.toLocaleString("en-NG", {
-    style: "currency",
-    currency: "NGN",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  });
+  const formatted = Math.round(price)
+    .toString()
+    .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return `₦${formatted}`;
 }

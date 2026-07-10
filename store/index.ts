@@ -17,6 +17,10 @@ interface myDataQuery {
 
 interface UserStore extends myDataQuery {
     setUser: (user: myDataQuery) => void;
+    scrollEnabled?: boolean;
+    setScrollEnabled?: (enabled: boolean) => void;
+    activeTabIndex?: number;
+    setActiveTabIndex?: (index: number) => void;
 }
 
 export const useUserStore = create<UserStore>((set) => ({
@@ -31,6 +35,10 @@ export const useUserStore = create<UserStore>((set) => ({
     avatar: undefined,
     hierarchyItemId: undefined,
     salesmanType: undefined,
+    scrollEnabled: true,
+    activeTabIndex: 0,
+    setScrollEnabled: (enabled: boolean) => set({ scrollEnabled: enabled }),
+    setActiveTabIndex: (index: number) => set({ activeTabIndex: index }),
     setUser: (user: myDataQuery) => {
         console.log("\n\tSetting user in store\n");
         set({ ...user })

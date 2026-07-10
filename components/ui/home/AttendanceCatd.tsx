@@ -4,6 +4,7 @@ import { format, getDaysInMonth, isSameMonth, subDays, isSameDay } from "date-fn
 import { Fire, CaretRight, FireIcon } from "phosphor-react-native";
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useAppTheme } from "@/constants/Theme";
 
 interface Attendance {
   id: string;
@@ -23,6 +24,8 @@ interface AttendenceProps {
 
 export default function AttendanceCard(props: AttendenceProps) {
   const router = useRouter();
+  const { colors, mode } = useAppTheme();
+  const isDark = mode === 'dark';
   const today = new Date();
   const currentMonth = today.getMonth();
   const currentYear = today.getFullYear();
@@ -33,11 +36,17 @@ export default function AttendanceCard(props: AttendenceProps) {
     const daysSoFar = today.getDate();
 
     // Get unique attended dates
-    const attendedDates = new Set(
-      props.attendence
-        .filter(att => isSameMonth(new Date(att.checkInTime), today))
-        .map(att => format(new Date(att.checkInTime), 'yyyy-MM-dd'))
-    );
+    const attendedDates = new Set<string>();
+    if (props.attendence && Array.isArray(props.attendence)) {
+      props.attendence.forEach(att => {
+        if (att && att.checkInTime) {
+          const d = new Date(att.checkInTime);
+          if (!isNaN(d.getTime()) && isSameMonth(d, today)) {
+            attendedDates.add(format(d, 'yyyy-MM-dd'));
+          }
+        }
+      });
+    }
 
     const attendedDays = attendedDates.size;
     const percentage = daysSoFar > 0 ? (attendedDays / daysSoFar) * 100 : 0;
@@ -47,21 +56,17 @@ export default function AttendanceCard(props: AttendenceProps) {
     // Check previous days
     for (let i = 0; i < 365; i++) { // Check up to a year back
       const checkDate = subDays(today, i);
-      // If it's today, we count it if present, otherwise we don't break streak yet (unless it's end of day logic, but for now let's assume streak includes today if checked in)
-      // Actually, standard streak logic: count consecutive days backwards from today (or yesterday if today not done yet)
-
       const dateString = format(checkDate, 'yyyy-MM-dd');
       // Check if this date exists in the full attendance list (not just this month)
-      const hasAttendance = props.attendence.some(att =>
-        isSameDay(new Date(att.checkInTime), checkDate)
-      );
+      const hasAttendance = (props.attendence || []).some(att => {
+        if (!att || !att.checkInTime) return false;
+        const d = new Date(att.checkInTime);
+        return !isNaN(d.getTime()) && isSameDay(d, checkDate);
+      });
 
       if (hasAttendance) {
         streak++;
       } else {
-        // If it's today and no attendance, don't break streak yet if we are just checking history, 
-        // but for simplicity, let's say streak breaks if a day is missed. 
-        // If today is missed, streak might be from yesterday.
         if (i === 0) continue; // Skip today if not present yet
         break;
       }
@@ -99,8 +104,8 @@ export default function AttendanceCard(props: AttendenceProps) {
           key={day}
           style={[
             styles.dayDot,
-            isFuture ? styles.dayDotFuture :
-              isAttended ? styles.dayDotPresent : styles.dayDotAbsent,
+            isFuture ? [styles.dayDotFuture, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9', borderColor: isDark ? '#334155' : '#E2E8F0' }] :
+              isAttended ? styles.dayDotPresent : [styles.dayDotAbsent, { backgroundColor: isDark ? '#334155' : '#E2E8F0' }],
           ]}
         />
       );
@@ -110,7 +115,7 @@ export default function AttendanceCard(props: AttendenceProps) {
   };
 
   return (
-    <View style={styles.card} >
+    <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]} >
       <View style={styles.cardHeader}>
         <LinearGradient
           colors={['#FF4B6E', '#FF8E53']}
@@ -123,22 +128,22 @@ export default function AttendanceCard(props: AttendenceProps) {
         </LinearGradient>
         <View>
           {/* <Text style={styles.cardTitle}>Attendance</Text> */}
-          <Text style={styles.monthText}>{format(today, 'MMMM yyyy')}</Text>
+          <Text style={[styles.monthText, { color: colors.text.secondary }]}>{format(today, 'MMMM yyyy')}</Text>
         </View>
       </View>
 
-      <View style={styles.statsRow}>
+      <View style={[styles.statsRow, { backgroundColor: isDark ? colors.surfaceAlt : '#F8FAFC' }]}>
         <View style={styles.statItem}>
-          <Text style={styles.statValue}>{attendanceData.percentage}%</Text>
-          <Text style={styles.statLabel}>Attendance Rate</Text>
+          <Text style={[styles.statValue, { color: colors.text.primary }]}>{attendanceData.percentage}%</Text>
+          <Text style={[styles.statLabel, { color: colors.text.secondary }]}>Attendance Rate</Text>
         </View>
-        <View style={styles.statDivider} />
+        <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
         <View style={styles.statItem}>
-          <Text style={styles.statValue}>
+          <Text style={[styles.statValue, { color: colors.text.primary }]}>
             {attendanceData.attendedDays}
-            <Text style={styles.statTotal}>/{attendanceData.totalDays}</Text>
+            <Text style={[styles.statTotal, { color: colors.text.muted }]}>/{attendanceData.totalDays}</Text>
           </Text>
-          <Text style={styles.statLabel}>Days Present</Text>
+          <Text style={[styles.statLabel, { color: colors.text.secondary }]}>Days Present</Text>
         </View>
       </View>
 
@@ -152,7 +157,10 @@ export default function AttendanceCard(props: AttendenceProps) {
         <Pressable
           style={({ pressed }) => [
             styles.checkOutButton,
-            { transform: [{ scale: pressed ? 0.98 : 1 }] },
+            { 
+              backgroundColor: isDark ? 'rgba(239, 68, 68, 0.12)' : '#FEF2F2',
+              transform: [{ scale: pressed ? 0.98 : 1 }] 
+            },
           ]}
           onPressIn={() => Haptics.selectionAsync()}
           onPress={() => router.push("/screens/checkout")}

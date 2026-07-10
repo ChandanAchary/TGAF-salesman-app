@@ -3,7 +3,6 @@ import { api } from "@/lib/axios/axios";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, ActivityIndicator, RefreshControl, Alert, Modal, TextInput, Pressable } from "react-native";
-import { secondary, primary, primaryLight } from "@/constants/Colors";
 import TabBar from "@/components/ui/layout/TabBar";
 import { useEffect, useState } from "react";
 import { formatPrice } from "@/lib/formatters/formatter";
@@ -12,6 +11,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import ModalView from "@/components/ui/layout/Modal";
 import { X } from "phosphor-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Theme, useAppTheme } from "@/constants/Theme";
 
 interface InvoiceData {
   id: string;
@@ -59,6 +59,8 @@ interface ReceiveItemsInput {
 }
 
 export default function Invoice() {
+  const { colors, mode } = useAppTheme();
+  const isDark = mode === 'dark';
   const { distributorId } = useLocalSearchParams();
   const [refreshing, setRefreshing] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceData | null>(null);
@@ -133,13 +135,13 @@ export default function Invoice() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <TabBar title="INVOICE" />
 
       {/* Content */}
       {invoiceQuery.isFetching && !refreshing ? (
         <View style={styles.loader}>
-          <ActivityIndicator size="large" color={primary} />
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : (
         <ScrollView
@@ -148,22 +150,22 @@ export default function Invoice() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              tintColor={primary}
+              tintColor={colors.primary}
             />
           }
         >
           {invoiceQuery.data?.data.length === 0 ? (
             <View style={styles.emptyState}>
-              <Text style={styles.emptyText}>No invoices found</Text>
+              <Text style={[styles.emptyText, { color: colors.text.secondary }]}>No invoices found</Text>
             </View>
           ) : (
             invoiceQuery.data?.data.map((invoice) => (
-              <View key={invoice.id} style={styles.invoiceCard}>
+              <View key={invoice.id} style={[styles.invoiceCard, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: isDark ? 1 : 0 }]}>
                 {/* Invoice Header */}
                 <View style={styles.invoiceHeader}>
                   <View style={styles.invoiceMeta}>
-                    <Text style={styles.invoiceId}>INVOICE #{invoice.id.slice(0, 8).toUpperCase()}</Text>
-                    <Text style={styles.invoiceDate}>
+                    <Text style={[styles.invoiceId, { color: colors.text.secondary }]}>INVOICE #{invoice.id.slice(0, 8).toUpperCase()}</Text>
+                    <Text style={[styles.invoiceDate, { color: colors.text.secondary }]}>
                       {new Date(invoice.createdAt).toLocaleDateString('en-US', {
                         day: 'numeric',
                         month: 'short',
@@ -171,32 +173,32 @@ export default function Invoice() {
                       })}
                     </Text>
                   </View>
-                  <Text style={styles.invoiceTotal}>
+                  <Text style={[styles.invoiceTotal, { color: colors.text.primary }]}>
                     {formatPrice(invoice.totalPrice)}
                   </Text>
                 </View>
 
                 {/* Invoice Items */}
-                <View style={styles.itemsContainer}>
+                <View style={[styles.itemsContainer, { borderTopColor: colors.border }]}>
                   {invoice.InvoiceItems.slice(0, 2).map((item) => (
                     <View key={item.id} style={styles.itemRow}>
                       <Image
                         source={{ uri: item.product.productImg || "/default.img" }}
-                        style={styles.itemImage}
+                        style={[styles.itemImage, { backgroundColor: isDark ? '#1e293b' : '#F3F4F6' }]}
                         resizeMode="cover"
                       />
                       <View style={styles.itemDetails}>
-                        <Text style={styles.itemName} numberOfLines={1}>
+                        <Text style={[styles.itemName, { color: colors.text.primary }]} numberOfLines={1}>
                           {item.product.name}
                         </Text>
-                        <Text style={styles.itemQuantity}>
+                        <Text style={[styles.itemQuantity, { color: colors.text.secondary }]}>
                           {item.quantity} × {formatPrice(item.price)}
                         </Text>
                       </View>
                     </View>
                   ))}
                   {invoice.InvoiceItems.length > 2 && (
-                    <Text style={styles.moreItems}>
+                    <Text style={[styles.moreItems, { color: colors.text.muted }]}>
                       +{invoice.InvoiceItems.length - 2} more items
                     </Text>
                   )}
@@ -206,7 +208,7 @@ export default function Invoice() {
                 <View style={styles.actionButtons}>
                   {!invoice.InvoiceItems.every(item => item.recived) && (
                     <TouchableOpacity
-                      style={[styles.actionButton, styles.receiveButton]}
+                      style={[styles.actionButton, styles.receiveButton, { backgroundColor: isDark ? 'rgba(16, 185, 129, 0.15)' : '#D1FAE5', borderColor: '#10B981' }]}
                       onPress={() => handleReceivePress(invoice)}
                     >
                       <Text style={styles.actionButtonText}>Receive Items</Text>
@@ -224,9 +226,9 @@ export default function Invoice() {
         isReceiveModalVisible={isReceiveModalVisible}
         setIsReceiveModalVisible={setIsReceiveModalVisible}
       >
-        <View style={styles.modalContent}>
+        <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 16 }}>
-            <Text style={styles.modalTitle}>Receive Items</Text>
+            <Text style={[styles.modalTitle, { color: colors.text.primary }]}>Receive Items</Text>
             <TouchableOpacity
               onPress={() => {
                 setIsReceiveModalVisible(false);
@@ -234,23 +236,23 @@ export default function Invoice() {
                 setReceivedQuantities({});
               }}
             >
-              <X size={24} color="hotpink" />
+              <X size={24} color={colors.primary} />
             </TouchableOpacity>
           </View>
 
           <ScrollView style={styles.modalScroll}>
             {selectedInvoice?.InvoiceItems.map((item) => (
-              <View key={item.id} style={styles.modalItem}>
+              <View key={item.id} style={[styles.modalItem, { borderBottomColor: colors.border }]}>
                 <View style={styles.modalItemInfo}>
-                  <Text style={styles.modalItemName}>{item.product.name}</Text>
-                  <Text style={styles.modalItemQuantity}>
+                  <Text style={[styles.modalItemName, { color: colors.text.primary }]}>{item.product.name}</Text>
+                  <Text style={[styles.modalItemQuantity, { color: colors.text.secondary }]}>
                     Ordered: {item.quantity}
                   </Text>
                 </View>
                 <View style={styles.modalItemInput}>
-                  <Text style={styles.modalItemLabel}>Received:</Text>
+                  <Text style={[styles.modalItemLabel, { color: colors.text.secondary }]}>Received:</Text>
                   <TextInput
-                    style={styles.quantityInput}
+                    style={[styles.quantityInput, { color: colors.text.primary, borderColor: colors.border, backgroundColor: isDark ? '#1e293b' : '#fff' }]}
                     keyboardType="numeric"
                     value={receivedQuantities[item.id]?.toString() || '0'}
                     onChangeText={(value) => handleQuantityChange(item.id, value)}
@@ -262,14 +264,14 @@ export default function Invoice() {
 
           <View style={styles.modalActions}>
             <TouchableOpacity
-              style={[styles.modalButton, styles.submitButton]}
+              style={[styles.modalButton, styles.submitButton, { backgroundColor: isDark ? 'rgba(99, 102, 241, 0.15)' : colors.primaryLight, borderColor: colors.primary }]}
               onPress={handleSubmitReceive}
               disabled={receiveMutation.isPending}
             >
               {receiveMutation.isPending ? (
                 <ActivityIndicator color="white" />
               ) : (
-                <Text style={styles.modalButtonText}>Submit</Text>
+                <Text style={[styles.modalButtonText, { color: colors.primary }]}>Submit</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -282,7 +284,7 @@ export default function Invoice() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: secondary,
+    backgroundColor: "#e0e7ff",
   },
   header: {
     paddingHorizontal: 16,
@@ -486,15 +488,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   submitButton: {
-    backgroundColor: primaryLight,
+    backgroundColor: "#e0e7ff",
     width: '100%',
-    borderColor: primary,
+    borderColor: "#1d4ed8",
     borderWidth: 1,
-    color: primary,
+    color: "#1d4ed8",
   },
   modalButtonText: {
     fontSize: 14,
     fontWeight: '500',
-    color: primary,
+    color: "#1d4ed8",
   },
 });

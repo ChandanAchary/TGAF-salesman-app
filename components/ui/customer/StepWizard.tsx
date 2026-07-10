@@ -18,9 +18,14 @@ interface StepWizardProps {
   currentStep: number;
 }
 
+import { useAppTheme } from '@/constants/Theme';
+
 export default function StepWizard({ steps, currentStep }: StepWizardProps) {
+  const { colors, mode } = useAppTheme();
+  const isDark = mode === 'dark';
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
       <View style={styles.stepsRow}>
         {steps.map((step, index) => {
           const isActive = currentStep === step.id;
@@ -33,6 +38,7 @@ export default function StepWizard({ steps, currentStep }: StepWizardProps) {
                 <View
                   style={[
                     styles.stepCircle,
+                    { backgroundColor: isDark ? '#334155' : '#E5E7EB' },
                     isActive && styles.stepCircleActive,
                     (isCompleted || isPast) && styles.stepCircleCompleted,
                   ]}
@@ -43,6 +49,7 @@ export default function StepWizard({ steps, currentStep }: StepWizardProps) {
                     <Text
                       style={[
                         styles.stepNumber,
+                        { color: isDark ? '#94A3B8' : '#6B7280' },
                         isActive && styles.stepNumberActive,
                       ]}
                     >
@@ -53,6 +60,7 @@ export default function StepWizard({ steps, currentStep }: StepWizardProps) {
                 <Text
                   style={[
                     styles.stepLabel,
+                    { color: isDark ? '#64748B' : '#9CA3AF' },
                     isActive && styles.stepLabelActive,
                     (isCompleted || isPast) && styles.stepLabelCompleted,
                   ]}
@@ -65,6 +73,7 @@ export default function StepWizard({ steps, currentStep }: StepWizardProps) {
                 <View
                   style={[
                     styles.connector,
+                    { backgroundColor: isDark ? '#334155' : '#E5E7EB' },
                     (isCompleted || isPast) && styles.connectorCompleted,
                   ]}
                 />

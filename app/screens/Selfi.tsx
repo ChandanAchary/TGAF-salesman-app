@@ -133,7 +133,19 @@ export default function SelfieCapture() {
       alert("You need an internet connection to upload the photo");
       return;
     }
-    if (activity != 'TASK_FORCE' && activity != 'WORKING') {
+    const isSupervisor = 
+      salesmanType === "CITYHEAD" || 
+      salesmanType === "FIELDEXECUTIVE" || 
+      salesmanType === "SUPERVISOR" ||
+      salesmanType === "ASM" ||
+      salesmanType === "OFFICE" ||
+      salesmanType === "TERRITORY_SALES_MANAGER" ||
+      salesmanType === "DRIVER" ||
+      salesmanType === "FACTORY";
+
+    const checkInActivity = isSupervisor ? 'TASK_FORCE' : activity;
+
+    if (checkInActivity != 'TASK_FORCE' && checkInActivity != 'WORKING') {
       alert("Activity not found");
       return;
     }
@@ -147,7 +159,7 @@ export default function SelfieCapture() {
       oddometerReadingStart: odometerReadingStart ? odometerReadingStart : undefined,
       latitude,
       longitude,
-      activity
+      activity: checkInActivity as any
     })
   }
 

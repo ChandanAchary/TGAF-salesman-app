@@ -2,9 +2,9 @@ import ModalView from "@/components/ui/layout/Modal";
 import { OtpInput } from "@/components/ui/layout/OtpInput";
 import TabBar from "@/components/ui/layout/TabBar";
 import { API_ROUTES } from "@/constants/ApiRoutes";
-import { primary } from "@/constants/Colors";
 import { api } from "@/lib/axios/axios";
 import { Response } from "@/lib/types/types";
+import { Theme, useAppTheme } from "@/constants/Theme";
 import { ApproveReconciliationParams, CreateReconciliationParams } from "@/shared/models/salesman";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -44,6 +44,8 @@ interface CreateReconciliationResponse extends Response {
 }
 
 export default function createReconcillation() {
+  const { colors, mode } = useAppTheme();
+  const isDark = mode === 'dark';
   const { pickstockId } = useLocalSearchParams();
   const router = useRouter();
   const [paidAmountInput, setPaidAmountInput] = useState("");
@@ -191,22 +193,22 @@ export default function createReconcillation() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       <TabBar title="RECONCILIATION" />
 
-      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <View style={styles.section}>
+      <ScrollView contentContainerStyle={[styles.container, { backgroundColor: colors.background }]} keyboardShouldPersistTaps="handled">
+        <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: isDark ? 1 : 0 }]}>
           {getReconcillationDetailsQuery.isLoading ? (
-            <ActivityIndicator size="small" color={primary} />
+            <ActivityIndicator size="small" color={colors.primary} />
           ) : getReconcillationDetailsQuery.isError ? (
             <Text style={styles.errorText}>Failed to load reconciliation details.</Text>
           ) : !details ? (
             <Text style={styles.errorText}>No reconciliation details available.</Text>
           ) : (
             <>
-              <View style={styles.totalCard}>
-                <Text style={styles.totalLabel}>Debt (Total Collected)</Text>
-                <Text style={styles.totalAmount}>₦{(details.totalCollected ?? 0).toLocaleString()}</Text>
+              <View style={[styles.totalCard, { backgroundColor: isDark ? 'rgba(219, 39, 119, 0.15)' : '#fce7f3', borderColor: colors.border }]}>
+                <Text style={[styles.totalLabel, { color: isDark ? '#fbcfe8' : '#be185d' }]}>Debt (Total Collected)</Text>
+                <Text style={[styles.totalAmount, { color: isDark ? '#fce7f3' : '#831843' }]}>₦{(details.totalCollected ?? 0).toLocaleString()}</Text>
               </View>
 
               {stockItems.map((item) => {
@@ -215,44 +217,45 @@ export default function createReconcillation() {
                 const productImg = item.product?.productImg;
 
                 return (
-                  <View key={item.id} style={styles.stockCard}>
+                  <View key={item.id} style={[styles.stockCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                     <View style={styles.stockTopRow}>
                       {productImg ? (
-                        <Image source={{ uri: productImg }} style={styles.productImage} resizeMode="cover" />
+                        <Image source={{ uri: productImg }} style={[styles.productImage, { backgroundColor: isDark ? '#1e293b' : '#f3f4f6' }]} resizeMode="cover" />
                       ) : (
-                        <View style={styles.productImagePlaceholder}>
-                          <Text style={styles.productImagePlaceholderText}>N/A</Text>
+                        <View style={[styles.productImagePlaceholder, { backgroundColor: isDark ? '#1e293b' : '#e5e7eb' }]}>
+                          <Text style={[styles.productImagePlaceholderText, { color: colors.text.secondary }]}>N/A</Text>
                         </View>
                       )}
 
                       <View style={styles.stockInfo}>
-                        <Text style={styles.stockSku} numberOfLines={1}>{skuLabel}</Text>
+                        <Text style={[styles.stockSku, { color: colors.text.primary }]} numberOfLines={1}>{skuLabel}</Text>
                         <View style={styles.stockMetaRow}>
-                          <View style={[styles.metricChip, { backgroundColor: "#dcfce7", borderColor: "#86efac" }]}>
-                            <Text style={[styles.metricLabel, { color: "#166534" }]}>Sold</Text>
-                            <Text style={[styles.metricValue, { color: "#166534" }]}>{item.soldQuantity}</Text>
+                          <View style={[styles.metricChip, { backgroundColor: isDark ? 'rgba(16, 185, 129, 0.15)' : '#dcfce7', borderColor: isDark ? '#059669' : '#86efac' }]}>
+                            <Text style={[styles.metricLabel, { color: isDark ? '#a7f3d0' : '#166534' }]}>Sold</Text>
+                            <Text style={[styles.metricValue, { color: isDark ? '#a7f3d0' : '#166534' }]}>{item.soldQuantity}</Text>
                           </View>
-                          <View style={[styles.metricChip, { backgroundColor: "#fce7f3", borderColor: "#fbcfe8" }]}>
-                            <Text style={[styles.metricLabel, { color: "#be185d" }]}>Remaining</Text>
-                            <Text style={[styles.metricValue, { color: "#be185d" }]}>{item.remainingQuantity}</Text>
+                          <View style={[styles.metricChip, { backgroundColor: isDark ? 'rgba(219, 39, 119, 0.15)' : '#fce7f3', borderColor: isDark ? '#db2777' : '#fbcfe8' }]}>
+                            <Text style={[styles.metricLabel, { color: isDark ? '#fbcfe8' : '#be185d' }]}>Remaining</Text>
+                            <Text style={[styles.metricValue, { color: isDark ? '#fbcfe8' : '#be185d' }]}>{item.remainingQuantity}</Text>
                           </View>
-                          <View style={[styles.metricChip, styles.metricChipPrimary]}>
-                            <Text style={[styles.metricLabel, styles.metricLabelPrimary]}>Total</Text>
-                            <Text style={[styles.metricValue, styles.metricValuePrimary]}>{totalStock}</Text>
+                          <View style={[styles.metricChip, styles.metricChipPrimary, { backgroundColor: isDark ? 'rgba(37, 99, 235, 0.15)' : '#eff6ff', borderColor: isDark ? '#2563eb' : '#bfdbfe' }]}>
+                            <Text style={[styles.metricLabel, styles.metricLabelPrimary, { color: colors.primary }]}>Total</Text>
+                            <Text style={[styles.metricValue, styles.metricValuePrimary, { color: colors.text.primary }]}>{totalStock}</Text>
                           </View>
                         </View>
                       </View>
                     </View>
 
-                    <View style={styles.returnSection}>
+                    <View style={[styles.returnSection, { borderTopColor: colors.border }]}>
                       <View style={styles.quantityContainer}>
                         <View>
-                          <Text style={styles.quantityLabel}>Amount to Return</Text>
-                          <Text style={styles.returnHint}>Max returnable: {totalStock}</Text>
+                          <Text style={[styles.quantityLabel, { color: colors.primary }]}>Amount to Return</Text>
+                          <Text style={[styles.returnHint, { color: colors.text.secondary }]}>Max returnable: {totalStock}</Text>
                         </View>
                         <TextInput
-                          style={styles.input}
+                          style={[styles.input, { color: colors.primary, borderColor: colors.border, backgroundColor: isDark ? '#1e293b' : '#f9fafb' }]}
                           placeholder="0"
+                          placeholderTextColor={colors.text.muted}
                           keyboardType="numeric"
                           value={(returnQuantities[item.productId] ?? 0).toString()}
                           onChangeText={(value) => handleReturnQuantityChange(item.productId, value, totalStock)}
@@ -267,13 +270,14 @@ export default function createReconcillation() {
           )}
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.label}>Amount to Remit</Text>
-          <View style={styles.amountInputWrapper}>
-            <Text style={styles.currencyPrefix}>₦</Text>
+        <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: isDark ? 1 : 0 }]}>
+          <Text style={[styles.label, { color: colors.primary }]}>Amount to Remit</Text>
+          <View style={[styles.amountInputWrapper, { borderColor: colors.border, backgroundColor: isDark ? '#1e293b' : '#fff' }]}>
+            <Text style={[styles.currencyPrefix, { color: colors.text.primary }]}>₦</Text>
             <TextInput
-              style={styles.amountInput}
+              style={[styles.amountInput, { color: colors.primary }]}
               placeholder="Enter amount"
+              placeholderTextColor={colors.text.muted}
               keyboardType="numeric"
               value={paidAmountInput}
               onChangeText={setPaidAmountInput}
@@ -281,14 +285,15 @@ export default function createReconcillation() {
             />
           </View>
 
-          <View style={styles.summaryBox}>
-            <Text style={styles.summaryText}>Stocks to Return: {totalReturned}</Text>
-            <Text style={styles.summaryText}>SKUs: {stockItems.length}</Text>
+          <View style={[styles.summaryBox, { backgroundColor: isDark ? '#1e293b' : '#f9fafb', borderColor: colors.border }]}>
+            <Text style={[styles.summaryText, { color: colors.text.primary }]}>Stocks to Return: {totalReturned}</Text>
+            <Text style={[styles.summaryText, { color: colors.text.primary }]}>SKUs: {stockItems.length}</Text>
           </View>
 
           <Pressable
             style={({ pressed }) => [
               styles.submitButton,
+              { backgroundColor: colors.primary },
               pressed && styles.submitButtonPressed,
               (createReconciliationMutation.isPending || createApproveOtpReconMutation.isPending || stockItems.length === 0) && styles.submitButtonDisabled,
             ]}
@@ -308,12 +313,12 @@ export default function createReconcillation() {
         isReceiveModalVisible={otpModalVisible}
         setIsReceiveModalVisible={setOtpModalVisible}
       >
-        <View style={styles.modalContainer}>
-          <Text style={styles.modalTitle}>Verify OTP</Text>
-          <Text style={styles.modalMessage}>Enter OTP to approve this reconciliation.</Text>
+        <View style={[styles.modalContainer, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.modalTitle, { color: colors.text.primary }]}>Verify OTP</Text>
+          <Text style={[styles.modalMessage, { color: colors.text.secondary }]}>Enter OTP to approve this reconciliation.</Text>
           <OtpInput setOtp={setOtp} />
           <Pressable
-            style={[styles.modalButton, createApproveOtpReconMutation.isPending && styles.submitButtonDisabled]}
+            style={[styles.modalButton, { backgroundColor: colors.primary }, createApproveOtpReconMutation.isPending && styles.submitButtonDisabled]}
             onPress={handleVerifyOtp}
             disabled={createApproveOtpReconMutation.isPending}
           >
@@ -330,9 +335,9 @@ export default function createReconcillation() {
         isReceiveModalVisible={successModalVisible}
         setIsReceiveModalVisible={setSuccessModalVisible}
       >
-        <View style={styles.modalContainer}>
+        <View style={[styles.modalContainer, { backgroundColor: colors.surface }]}>
           <Text style={styles.successTitle}>Success</Text>
-          <Text style={styles.modalMessage}>{modalMessage}</Text>
+          <Text style={[styles.modalMessage, { color: colors.text.secondary }]}>{modalMessage}</Text>
           <Pressable
             style={[styles.modalButton, styles.successButton]}
             onPress={() => {
@@ -353,9 +358,9 @@ export default function createReconcillation() {
         isReceiveModalVisible={errorModalVisible}
         setIsReceiveModalVisible={setErrorModalVisible}
       >
-        <View style={styles.modalContainer}>
+        <View style={[styles.modalContainer, { backgroundColor: colors.surface }]}>
           <Text style={styles.errorTitle}>Error</Text>
-          <Text style={styles.modalMessage}>{modalMessage}</Text>
+          <Text style={[styles.modalMessage, { color: colors.text.secondary }]}>{modalMessage}</Text>
           <Pressable
             style={[styles.modalButton, styles.errorButton]}
             onPress={() => setErrorModalVisible(false)}
@@ -510,7 +515,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    color: primary,
+    color: "#1d4ed8",
     marginBottom: 8,
     fontWeight: "700",
   },
@@ -520,7 +525,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 6,
     fontSize: 15,
-    color: primary,
+    color: "#1d4ed8",
     fontWeight: "700",
   },
   amountInputWrapper: {
@@ -547,7 +552,7 @@ const styles = StyleSheet.create({
   },
   quantityLabel: {
     fontSize: 14,
-    color: primary,
+    color: "#1d4ed8",
     fontWeight: "700",
   },
   input: {
@@ -559,7 +564,7 @@ const styles = StyleSheet.create({
     width: 90,
     textAlign: "center",
     fontSize: 15,
-    color: primary,
+    color: "#1d4ed8",
     fontWeight: "700",
     backgroundColor: "#f9fafb",
   },
@@ -591,7 +596,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   submitButton: {
-    backgroundColor: primary,
+    backgroundColor: "#1d4ed8",
     padding: 14,
     borderRadius: 8,
     alignItems: "center",
@@ -629,7 +634,7 @@ const styles = StyleSheet.create({
   },
   modalButton: {
     marginTop: 8,
-    backgroundColor: primary,
+    backgroundColor: "#1d4ed8",
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: "center",

@@ -15,6 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import Avatar from "@/components/lazy/Avatar";
 import { tokenManager } from "@/lib/axios/tokenManager";
+import { useQueryClient } from "@tanstack/react-query";
 
 const { width } = Dimensions.get("window");
 
@@ -24,8 +25,13 @@ export default function Menu() {
   const avatar = useUserStore((state) => state.avatar);
   const { colors, mode } = useAppTheme();
   const isDark = mode === 'dark';
+  const queryClient = useQueryClient();
 
   const handleLogout = async () => {
+    // Clear React Query cache & Zustand store
+    queryClient.clear();
+    useUserStore.getState().setUser({});
+    
     // Clear storage and navigate to auth
     await tokenManager.clearToken();
     router.replace("/auth/login");
@@ -48,7 +54,11 @@ export default function Menu() {
       icon: <MaterialIcons name="store" size={24} color={colors.primary} />,
       colors: ["#EFF6FF", "#DBEAFE"] as const,
       label: "Create Outlet",
-      onPress: () => { router.replace("/(tabs)/store") },
+      onPress: () => {
+        const rawRole = useUserStore.getState().salesmanType;
+        const isExecutive = rawRole === "CITYHEAD" || rawRole === "FIELDEXECUTIVE";
+        useUserStore.getState().setActiveTabIndex?.(isExecutive ? 2 : 1);
+      },
     },
     {
       icon: <MaterialIcons name="notifications" size={24} color={colors.primary} />,

@@ -1,10 +1,10 @@
 import DistributorEditModal from "@/components/ui/distributor/distributorEditModal";
 import TabBar from "@/components/ui/layout/TabBar";
 import { API_ROUTES } from "@/constants/ApiRoutes";
-import { background, border } from "@/constants/Colors";
 import { api } from "@/lib/axios/axios";
 import { errorHandler } from "@/lib/axios/errorHandler";
 import { ErrorResponse, Response } from "@/lib/types/types";
+import { Theme, useAppTheme } from "@/constants/Theme";
 import { UpdateDistirbutorDetailsParams } from "@/shared/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
@@ -82,6 +82,8 @@ export interface DistributorDetailsResponse extends Response {
 }
 
 export default function DistributorDetails() {
+  const { colors, mode } = useAppTheme();
+  const isDark = mode === 'dark';
   const { distId } = useLocalSearchParams();
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -102,19 +104,19 @@ export default function DistributorDetails() {
   const distributor = distributorDetailsQuery.data?.data;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <TabBar title="DISTRIBUTOR" />
 
       {distributorDetailsQuery.isLoading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : distributorDetailsQuery.isError ? (
         <View style={styles.errorContainer}>
           <Ionicons name="warning-outline" size={32} color="#d32f2f" />
-          <Text style={styles.errorText}>Failed to load distributor details</Text>
+          <Text style={[styles.errorText, { color: colors.text.secondary }]}>Failed to load distributor details</Text>
           <TouchableOpacity
-            style={styles.retryButton}
+            style={[styles.retryButton, { backgroundColor: colors.primary }]}
             onPress={() => distributorDetailsQuery.refetch()}
           >
             <Text style={styles.retryButtonText}>Try Again</Text>
@@ -128,8 +130,8 @@ export default function DistributorDetails() {
               {distributor.avatar ? (
                 <Image source={{ uri: distributor.avatar }} style={styles.avatar} />
               ) : (
-                <View style={styles.avatarPlaceholder}>
-                  <Text style={styles.avatarInitials}>
+                <View style={[styles.avatarPlaceholder, { backgroundColor: isDark ? '#1e293b' : colors.primaryLight }]}>
+                  <Text style={[styles.avatarInitials, { color: colors.text.primary }]}>
                     {distributor.name?.split(" ").map(n => n[0]).join("").toUpperCase()}
                   </Text>
                 </View>
@@ -137,153 +139,144 @@ export default function DistributorDetails() {
             </View>
 
             <View style={styles.profileInfo}>
-              <Text style={styles.name}>{distributor.name}</Text>
+              <Text style={[styles.name, { color: colors.text.primary }]}>{distributor.name}</Text>
               <TouchableOpacity
                 style={styles.editButton}
                 onPress={() => setModalVisible(true)}
               >
-                <Ionicons name="create-outline" size={20} color="#007AFF" />
-                <Text style={styles.editButtonText}>Edit</Text>
+                <Ionicons name="create-outline" size={20} color={colors.primary} />
+                <Text style={[styles.editButtonText, { color: colors.primary }]}>Edit</Text>
               </TouchableOpacity>
-              <Text style={styles.code}>{distributor.distributorCode}</Text>
+              <Text style={[styles.code, { color: colors.text.secondary }]}>{distributor.distributorCode}</Text>
             </View>
-            {/* <View style={styles.statusContainer}>
-              <View style={[
-                styles.statusIndicator,
-                distributor.isActive ? styles.activeIndicator : styles.inactiveIndicator
-              ]} />
-              <Text style={styles.statusText}>
-                {distributor.isActive ? "Active" : "Inactive"}
-              </Text>
-            </View> */}
           </View>
 
           {/* Divider */}
-          <View style={styles.divider} />
+          <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
           {/* Contact Section */}
-          <View style={styles.section}>
+          <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <View style={styles.sectionHeader}>
-              <Ionicons name="call-outline" size={20} color="#007AFF" />
-              <Text style={styles.sectionTitle}>Contact Information</Text>
+              <Ionicons name="call-outline" size={20} color={colors.primary} />
+              <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Contact Information</Text>
             </View>
 
             <View style={styles.infoRow}>
-              <Ionicons name="phone-portrait-outline" size={18} color="#666" />
-              <Text style={styles.infoLabel}>Phone:</Text>
-              <Text style={styles.infoValue}>{distributor.phone}</Text>
+              <Ionicons name="phone-portrait-outline" size={18} color={colors.text.secondary} />
+              <Text style={[styles.infoLabel, { color: colors.text.secondary }]}>Phone:</Text>
+              <Text style={[styles.infoValue, { color: colors.text.primary }]}>{distributor.phone}</Text>
             </View>
 
             <View style={styles.infoRow}>
-              <Ionicons name="business-outline" size={18} color="#666" />
-              <Text style={styles.infoLabel}>Market:</Text>
-              <Text style={styles.infoValue}>{distributor.marketName}</Text>
+              <Ionicons name="business-outline" size={18} color={colors.text.secondary} />
+              <Text style={[styles.infoLabel, { color: colors.text.secondary }]}>Market:</Text>
+              <Text style={[styles.infoValue, { color: colors.text.primary }]}>{distributor.marketName}</Text>
             </View>
 
             <View style={styles.infoRow}>
-              <Ionicons name="location-outline" size={18} color="#666" />
-              <Text style={styles.infoLabel}>Address:</Text>
-              <Text style={styles.infoValue}>{distributor.address}</Text>
+              <Ionicons name="location-outline" size={18} color={colors.text.secondary} />
+              <Text style={[styles.infoLabel, { color: colors.text.secondary }]}>Address:</Text>
+              <Text style={[styles.infoValue, { color: colors.text.primary }]}>{distributor.address}</Text>
             </View>
           </View>
 
           {/* Personal Info Section */}
-          <View style={styles.section}>
+          <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <View style={styles.sectionHeader}>
-              <Ionicons name="person-outline" size={20} color="#007AFF" />
-              <Text style={styles.sectionTitle}>Personal Information</Text>
+              <Ionicons name="person-outline" size={20} color={colors.primary} />
+              <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Personal Information</Text>
             </View>
 
             <View style={styles.infoRow}>
-              <Ionicons name="person-circle-outline" size={18} color="#666" />
-              <Text style={styles.infoLabel}>CSE Name:</Text>
-              <Text style={styles.infoValue}>{distributor.cseName || "-"}</Text>
+              <Ionicons name="person-circle-outline" size={18} color={colors.text.secondary} />
+              <Text style={[styles.infoLabel, { color: colors.text.secondary }]}>CSE Name:</Text>
+              <Text style={[styles.infoValue, { color: colors.text.primary }]}>{distributor.cseName || "-"}</Text>
             </View>
 
             <View style={styles.infoRow}>
-              <Ionicons name="calendar-outline" size={18} color="#666" />
-              <Text style={styles.infoLabel}>Anniversary:</Text>
-              <Text style={styles.infoValue}>
+              <Ionicons name="calendar-outline" size={18} color={colors.text.secondary} />
+              <Text style={[styles.infoLabel, { color: colors.text.secondary }]}>Anniversary:</Text>
+              <Text style={[styles.infoValue, { color: colors.text.primary }]}>
                 {distributor.anniversaryDate ? new Date(distributor.anniversaryDate).toLocaleDateString() : "-"}
               </Text>
             </View>
 
             <View style={styles.infoRow}>
-              <Ionicons name="boat-outline" size={18} color="#666" />
-              <Text style={styles.infoLabel}>Date of Birth:</Text>
-              <Text style={styles.infoValue}>
+              <Ionicons name="calendar-outline" size={18} color={colors.text.secondary} />
+              <Text style={[styles.infoLabel, { color: colors.text.secondary }]}>Date of Birth:</Text>
+              <Text style={[styles.infoValue, { color: colors.text.primary }]}>
                 {distributor.dateOfBirth ? new Date(distributor.dateOfBirth).toLocaleDateString() : "-"}
               </Text>
             </View>
           </View>
 
           {/* Bank Details Section */}
-          <View style={styles.section}>
+          <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <View style={styles.sectionHeader}>
-              <Ionicons name="card-outline" size={20} color="#007AFF" />
-              <Text style={styles.sectionTitle}>Bank Details</Text>
+              <Ionicons name="card-outline" size={20} color={colors.primary} />
+              <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Bank Details</Text>
             </View>
 
             <View style={styles.infoRow}>
-              <Ionicons name="wallet-outline" size={18} color="#666" />
-              <Text style={styles.infoLabel}>Account No:</Text>
-              <Text style={styles.infoValue}>{distributor.bankAccountNumber}</Text>
+              <Ionicons name="wallet-outline" size={18} color={colors.text.secondary} />
+              <Text style={[styles.infoLabel, { color: colors.text.secondary }]}>Account No:</Text>
+              <Text style={[styles.infoValue, { color: colors.text.primary }]}>{distributor.bankAccountNumber}</Text>
             </View>
 
             <View style={styles.infoRow}>
-              <Ionicons name="person-outline" size={18} color="#666" />
-              <Text style={styles.infoLabel}>Holder Name:</Text>
-              <Text style={styles.infoValue}>{distributor.bankHolderName}</Text>
+              <Ionicons name="person-outline" size={18} color={colors.text.secondary} />
+              <Text style={[styles.infoLabel, { color: colors.text.secondary }]}>Holder Name:</Text>
+              <Text style={[styles.infoValue, { color: colors.text.primary }]}>{distributor.bankHolderName}</Text>
             </View>
 
             <View style={styles.infoRow}>
-              <Ionicons name="cash-outline" size={18} color="#666" />
-              <Text style={styles.infoLabel}>Current Account:</Text>
-              <Text style={styles.infoValue}>{distributor.currentAccountNumber}</Text>
+              <Ionicons name="cash-outline" size={18} color={colors.text.secondary} />
+              <Text style={[styles.infoLabel, { color: colors.text.secondary }]}>Current Account:</Text>
+              <Text style={[styles.infoValue, { color: colors.text.primary }]}>{distributor.currentAccountNumber}</Text>
             </View>
 
             <View style={styles.infoRow}>
-              <Ionicons name="card-outline" size={18} color="#666" />
-              <Text style={styles.infoLabel}>Stanbic VA:</Text>
-              <Text style={styles.infoValue}>{distributor.virtualAccountNumber || "NA"}</Text>
+              <Ionicons name="card-outline" size={18} color={colors.text.secondary} />
+              <Text style={[styles.infoLabel, { color: colors.text.secondary }]}>Stanbic VA:</Text>
+              <Text style={[styles.infoValue, { color: colors.text.primary }]}>{distributor.virtualAccountNumber || "NA"}</Text>
             </View>
 
             <View style={styles.infoRow}>
-              <Ionicons name="card-outline" size={18} color="#666" />
-              <Text style={styles.infoLabel}>FCMB VA:</Text>
-              <Text style={styles.infoValue}>{distributor.fcmbVirtualAccountNumber || "NA"}</Text>
+              <Ionicons name="card-outline" size={18} color={colors.text.secondary} />
+              <Text style={[styles.infoLabel, { color: colors.text.secondary }]}>FCMB VA:</Text>
+              <Text style={[styles.infoValue, { color: colors.text.primary }]}>{distributor.fcmbVirtualAccountNumber || "NA"}</Text>
             </View>
 
             <View style={styles.infoRow}>
-              <Ionicons name="card-outline" size={18} color="#666" />
-              <Text style={styles.infoLabel}>Globus VA:</Text>
-              <Text style={styles.infoValue}>{distributor.globusVirtualAccountNumber || "NA"}</Text>
+              <Ionicons name="card-outline" size={18} color={colors.text.secondary} />
+              <Text style={[styles.infoLabel, { color: colors.text.secondary }]}>Globus VA:</Text>
+              <Text style={[styles.infoValue, { color: colors.text.primary }]}>{distributor.globusVirtualAccountNumber || "NA"}</Text>
             </View>
           </View>
 
           {/* Godowns Section */}
-          <View style={styles.section}>
+          <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <View style={styles.sectionHeader}>
-              <Ionicons name="home-outline" size={20} color="#007AFF" />
-              <Text style={styles.sectionTitle}>Godowns ({distributor.Godown.length})</Text>
+              <Ionicons name="home-outline" size={20} color={colors.primary} />
+              <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Godowns ({distributor.Godown.length})</Text>
             </View>
 
             {distributor.Godown.length === 0 ? (
               <View style={styles.emptyState}>
-                <Ionicons name="alert-circle-outline" size={24} color="#999" />
-                <Text style={styles.emptyStateText}>No godowns registered</Text>
+                <Ionicons name="alert-circle-outline" size={24} color={colors.text.muted} />
+                <Text style={[styles.emptyStateText, { color: colors.text.muted }]}>No godowns registered</Text>
               </View>
             ) : (
               distributor.Godown.map(g => (
-                <View key={g.id} style={styles.itemContainer}>
-                  <Text style={styles.itemTitle}>{g.name || "Unnamed Godown"}</Text>
+                <View key={g.id} style={[styles.itemContainer, { backgroundColor: isDark ? '#1e293b' : '#f7f8fa', borderColor: colors.border }]}>
+                  <Text style={[styles.itemTitle, { color: colors.text.primary }]}>{g.name || "Unnamed Godown"}</Text>
                   <View style={styles.itemInfoRow}>
-                    <Ionicons name="location-outline" size={16} color="#666" />
-                    <Text style={styles.itemInfoText}>{g.address}</Text>
+                    <Ionicons name="location-outline" size={16} color={colors.text.secondary} />
+                    <Text style={[styles.itemInfoText, { color: colors.text.secondary }]}>{g.address}</Text>
                   </View>
                   <View style={styles.itemInfoRow}>
-                    <Ionicons name="map-outline" size={16} color="#666" />
-                    <Text style={styles.itemInfoText}>
+                    <Ionicons name="map-outline" size={16} color={colors.text.secondary} />
+                    <Text style={[styles.itemInfoText, { color: colors.text.secondary }]}>
                       {[g.city, g.state, g.pinCode].filter(Boolean).join(", ")}
                     </Text>
                   </View>
@@ -293,32 +286,32 @@ export default function DistributorDetails() {
           </View>
 
           {/* Own Shops Section */}
-          <View style={styles.section}>
+          <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <View style={styles.sectionHeader}>
-              <Ionicons name="storefront-outline" size={20} color="#007AFF" />
-              <Text style={styles.sectionTitle}>Own Shops ({distributor.OwnShop.length})</Text>
+              <Ionicons name="storefront-outline" size={20} color={colors.primary} />
+              <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Own Shops ({distributor.OwnShop.length})</Text>
             </View>
 
             {distributor.OwnShop.length === 0 ? (
               <View style={styles.emptyState}>
-                <Ionicons name="alert-circle-outline" size={24} color="#999" />
-                <Text style={styles.emptyStateText}>No shops registered</Text>
+                <Ionicons name="alert-circle-outline" size={24} color={colors.text.muted} />
+                <Text style={[styles.emptyStateText, { color: colors.text.muted }]}>No shops registered</Text>
               </View>
             ) : (
               distributor.OwnShop.map(s => (
-                <View key={s.id} style={styles.itemContainer}>
-                  <Text style={styles.itemTitle}>{s.name}</Text>
+                <View key={s.id} style={[styles.itemContainer, { backgroundColor: isDark ? '#1e293b' : '#f7f8fa', borderColor: colors.border }]}>
+                  <Text style={[styles.itemTitle, { color: colors.text.primary }]}>{s.name}</Text>
                   <View style={styles.itemInfoRow}>
-                    <Ionicons name="call-outline" size={16} color="#666" />
-                    <Text style={styles.itemInfoText}>{s.phone}</Text>
+                    <Ionicons name="call-outline" size={16} color={colors.text.secondary} />
+                    <Text style={[styles.itemInfoText, { color: colors.text.secondary }]}>{s.phone}</Text>
                   </View>
                   <View style={styles.itemInfoRow}>
-                    <Ionicons name="person-outline" size={16} color="#666" />
-                    <Text style={styles.itemInfoText}>Contact: {s.contactPerson}</Text>
+                    <Ionicons name="person-outline" size={16} color={colors.text.secondary} />
+                    <Text style={[styles.itemInfoText, { color: colors.text.secondary }]}>Contact: {s.contactPerson}</Text>
                   </View>
                   <View style={styles.itemInfoRow}>
-                    <Ionicons name="location-outline" size={16} color="#666" />
-                    <Text style={styles.itemInfoText}>{s.address}</Text>
+                    <Ionicons name="location-outline" size={16} color={colors.text.secondary} />
+                    <Text style={[styles.itemInfoText, { color: colors.text.secondary }]}>{s.address}</Text>
                   </View>
                 </View>
               ))
@@ -326,28 +319,28 @@ export default function DistributorDetails() {
           </View>
 
           {/* Company Dealt Section */}
-          <View style={styles.section}>
+          <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <View style={styles.sectionHeader}>
-              <Ionicons name="business-outline" size={20} color="#007AFF" />
-              <Text style={styles.sectionTitle}>Company Dealt ({distributor.CompanyDelt.length})</Text>
+              <Ionicons name="business-outline" size={20} color={colors.primary} />
+              <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Company Dealt ({distributor.CompanyDelt.length})</Text>
             </View>
 
             {distributor.CompanyDelt.length === 0 ? (
               <View style={styles.emptyState}>
-                <Ionicons name="alert-circle-outline" size={24} color="#999" />
-                <Text style={styles.emptyStateText}>No companies registered</Text>
+                <Ionicons name="alert-circle-outline" size={24} color={colors.text.muted} />
+                <Text style={[styles.emptyStateText, { color: colors.text.muted }]}>No companies registered</Text>
               </View>
             ) : (
               distributor.CompanyDelt.map(c => (
-                <View key={c.id} style={styles.itemContainer}>
-                  <Text style={styles.itemTitle}>{c.name}</Text>
+                <View key={c.id} style={[styles.itemContainer, { backgroundColor: isDark ? '#1e293b' : '#f7f8fa', borderColor: colors.border }]}>
+                  <Text style={[styles.itemTitle, { color: colors.text.primary }]}>{c.name}</Text>
                   <View style={styles.itemInfoRow}>
-                    <Ionicons name="pricetag-outline" size={16} color="#666" />
-                    <Text style={styles.itemInfoText}>Type: {c.dealingType}</Text>
+                    <Ionicons name="pricetag-outline" size={16} color={colors.text.secondary} />
+                    <Text style={[styles.itemInfoText, { color: colors.text.secondary }]}>Type: {c.dealingType}</Text>
                   </View>
                   <View style={styles.itemInfoRow}>
-                    <Ionicons name="list-outline" size={16} color="#666" />
-                    <Text style={styles.itemInfoText}>Category: {c.productCategory || "-"}</Text>
+                    <Ionicons name="list-outline" size={16} color={colors.text.secondary} />
+                    <Text style={[styles.itemInfoText, { color: colors.text.secondary }]}>Category: {c.productCategory || "-"}</Text>
                   </View>
                 </View>
               ))

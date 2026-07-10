@@ -4,8 +4,8 @@ import { Entypo, MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import * as Haptics from 'expo-haptics';
 import { PieChart } from "react-native-gifted-charts";
-import { primary } from "@/constants/Colors";
 import { ArrowCircleRight } from "phosphor-react-native";
+import { useAppTheme } from "@/constants/Theme";
 
 interface RouteCustomer {
   id: string;
@@ -54,14 +54,16 @@ interface TargetProps {
 
 export default function TargetChart({ target }: TargetProps) {
   const router = useRouter();
+  const { colors, mode } = useAppTheme();
+  const isDark = mode === 'dark';
 
   if (!target) {
     return (
       <View style={styles.emptyContainer}>
-        <View style={styles.emptyContent}>
-          <MaterialIcons name="error-outline" size={32} color="#64748B" />
-          <Text style={styles.emptyTitle}>No Target Data</Text>
-          <Text style={styles.emptySubtitle}>No target information available for this period</Text>
+        <View style={[styles.emptyContent, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <MaterialIcons name="error-outline" size={32} color={colors.text.muted} />
+          <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>No Target Data</Text>
+          <Text style={[styles.emptySubtitle, { color: colors.text.secondary }]}>No target information available for this period</Text>
           <TouchableOpacity
             style={styles.exploreButton}
             onPress={() => {
@@ -87,13 +89,13 @@ export default function TargetChart({ target }: TargetProps) {
 
   const pieData = [
     { value: progress, color: progressColor },
-    { value: 100 - progress, color: 'rgba(0,0,0,0.05)' }
+    { value: 100 - progress, color: isDark ? '#334155' : 'rgba(0,0,0,0.05)' }
   ];
 
   return (
     <View style={styles.container}>
-      <View style={styles.card}>
-        <View style={styles.chartSection}>
+      <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={[styles.chartSection, { borderRightColor: isDark ? colors.border : 'rgba(0,0,0,0.05)' }]}>
           <PieChart
             donut
             innerRadius={40}
@@ -101,13 +103,13 @@ export default function TargetChart({ target }: TargetProps) {
             data={pieData}
             centerLabelComponent={() => (
               <View style={styles.centerLabel}>
-                <Text style={styles.progressText}>{progress}%</Text>
-                <Text style={styles.progressLabelText}>Achieved</Text>
+                <Text style={[styles.progressText, { color: colors.text.primary }]}>{progress}%</Text>
+                <Text style={[styles.progressLabelText, { color: colors.text.secondary }]}>Collected</Text>
               </View>
             )}
           />
-          <View style={styles.targetBadge}>
-            <Text style={styles.targetBadgeText}>
+          <View style={[styles.targetBadge, { backgroundColor: isDark ? '#1e293b' : '#F1F5F9' }]}>
+            <Text style={[styles.targetBadgeText, { color: colors.text.primary }]}>
               {target.actual} / {target.target}
             </Text>
           </View>
@@ -115,36 +117,35 @@ export default function TargetChart({ target }: TargetProps) {
 
         <View style={styles.detailsSection}>
           <View style={styles.routeInfo}>
-            <View style={styles.iconContainer}>
-              <Ionicons name="location" size={16} color="#3B82F6" />
+            <View style={[styles.iconContainer, { backgroundColor: isDark ? 'rgba(37, 99, 235, 0.15)' : '#EFF6FF' }]}>
+              <Ionicons name="map" size={16} color={colors.primary} />
             </View>
-            <Text style={styles.routeName} numberOfLines={1}>
-              {target.route.name}
+            <Text style={[styles.routeName, { color: colors.text.primary }]} numberOfLines={1}>
+              {target.route?.name || "Target Route"}
             </Text>
           </View>
 
-          <View style={styles.statsRow}>
+          <View style={[styles.statsRow, { backgroundColor: isDark ? '#1e293b' : '#F8FAFC' }]}>
             <View style={styles.statBox}>
-              <Text style={styles.statValue}>{customersCount}</Text>
-              <Text style={styles.statLabel}>Total Outlets</Text>
+              <Text style={[styles.statValue, { color: colors.text.primary }]}>{customersCount}</Text>
+              <Text style={[styles.statLabel, { color: colors.text.secondary }]}>Outlets</Text>
             </View>
-            <View style={styles.imageContainer}>
-              <Image
-                source={require("@/assets/images/shop-icon.png")}
-                style={{ width: 32, height: 32 }}
-              />
+            <View style={styles.statBox}>
+              <Text style={[styles.statValue, { color: progressColor }]}>{progress}%</Text>
+              <Text style={[styles.statLabel, { color: colors.text.secondary }]}>Target</Text>
             </View>
           </View>
 
           <TouchableOpacity
-            style={styles.detailsButton}
+            style={[styles.detailsButton, { backgroundColor: isDark ? 'rgba(2, 132, 199, 0.15)' : '#F0F9FF' }]}
             onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              router.push(`/screens/route/myroute?id=${target.route?.id || ''}`);
+              router.push(`/screens/route/myroute?id=${target.routeId}`);
             }}
+            activeOpacity={0.8}
           >
-            <Text style={styles.detailsButtonText}>View Beat</Text>
-            <ArrowCircleRight size={20} weight="fill" color={primary} />
+            <Text style={[styles.detailsButtonText, { color: isDark ? '#38bdf8' : '#0284C7' }]}>View Route</Text>
+            <ArrowCircleRight size={18} color={isDark ? '#38bdf8' : '#0284C7'} weight="bold" />
           </TouchableOpacity>
         </View>
       </View>

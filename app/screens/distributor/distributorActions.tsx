@@ -1,6 +1,5 @@
 import TabBar from "@/components/ui/layout/TabBar";
 import { API_ROUTES } from "@/constants/ApiRoutes";
-import { background, border, primary, text } from "@/constants/Colors";
 import { api } from "@/lib/axios/axios";
 import { Response } from "@/lib/types/types";
 import { FontAwesome5, Ionicons, MaterialIcons } from '@expo/vector-icons';
@@ -9,6 +8,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Theme, useAppTheme } from "@/constants/Theme";
 
 interface LedgerBalanceQueryReponse extends Response {
   data: {
@@ -48,6 +48,8 @@ interface LedgerBalanceQueryReponse extends Response {
 }
 
 export default function DistributorActions() {
+  const { colors, mode } = useAppTheme();
+  const isDark = mode === 'dark';
   const { id } = useLocalSearchParams();
   const router = useRouter();
 
@@ -126,7 +128,7 @@ export default function DistributorActions() {
   ];
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <TabBar title="ACTIONS" />
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -158,43 +160,43 @@ export default function DistributorActions() {
 
         {/* ── Distributor Info Strip ── */}
         <TouchableOpacity
-          style={styles.infoStrip}
+          style={[styles.infoStrip, { backgroundColor: colors.surface, borderColor: colors.border }]}
           activeOpacity={0.7}
           onPress={() => {
             router.push(`/screens/distributor/distributorDetails?distId=${encodeURIComponent(id as string)}`);
           }}
         >
-          <View style={styles.infoAvatar}>
-            <Text style={styles.infoAvatarText}>
+          <View style={[styles.infoAvatar, { backgroundColor: isDark ? 'rgba(37, 99, 235, 0.15)' : 'rgba(11, 114, 255, 0.1)' }]}>
+            <Text style={[styles.infoAvatarText, { color: colors.primary }]}>
               {distributorInfo?.name?.charAt(0)?.toUpperCase() || "D"}
             </Text>
           </View>
           <View style={styles.infoDetails}>
-            <Text style={styles.infoName} numberOfLines={1}>
+            <Text style={[styles.infoName, { color: colors.text.primary }]} numberOfLines={1}>
               {distributorInfo?.name || "—"}
             </Text>
             <View style={styles.infoMeta}>
-              <Ionicons name="location-outline" size={13} color={text.tertiary} />
-              <Text style={styles.infoMetaText} numberOfLines={1}>
+              <Ionicons name="location-outline" size={13} color={colors.text.secondary} />
+              <Text style={[styles.infoMetaText, { color: colors.text.secondary }]} numberOfLines={1}>
                 {distributorInfo?.marketName || "—"}
               </Text>
-              <View style={styles.infoDot} />
-              <Ionicons name="call-outline" size={13} color={text.tertiary} />
-              <Text style={styles.infoMetaText} numberOfLines={1}>
+              <View style={[styles.infoDot, { backgroundColor: colors.text.secondary }]} />
+              <Ionicons name="call-outline" size={13} color={colors.text.secondary} />
+              <Text style={[styles.infoMetaText, { color: colors.text.secondary }]} numberOfLines={1}>
                 {distributorInfo?.phone || "—"}
               </Text>
             </View>
           </View>
-          <MaterialIcons name="chevron-right" size={22} color={text.tertiary} />
+          <MaterialIcons name="chevron-right" size={22} color={colors.text.secondary} />
         </TouchableOpacity>
 
         {/* ── Actions Grid ── */}
-        <Text style={styles.sectionTitle}>Actions</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Actions</Text>
         <View style={styles.actionsGrid}>
           {actions.map((action) => (
             <TouchableOpacity
               key={action.id}
-              style={styles.actionTile}
+              style={[styles.actionTile, { backgroundColor: colors.surface, borderColor: colors.border }]}
               activeOpacity={0.75}
               onPress={action.action}
             >
@@ -206,34 +208,21 @@ export default function DistributorActions() {
               >
                 {action.icon}
               </LinearGradient>
-              <Text style={styles.actionTileTitle}>{action.title}</Text>
-              <Text style={styles.actionTileDesc}>{action.description}</Text>
+              <Text style={[styles.actionTileTitle, { color: colors.text.primary }]}>{action.title}</Text>
+              <Text style={[styles.actionTileDesc, { color: colors.text.secondary }]}>{action.description}</Text>
             </TouchableOpacity>
           ))}
         </View>
 
-        {/* ── View Details CTA ── */}
-        {/* <TouchableOpacity
-          style={styles.detailsCta}
-          activeOpacity={0.7}
-          onPress={() => {
-            router.push(`/screens/distributor/distributorDetails?distId=${encodeURIComponent(id as string)}`);
-          }}
-        >
-          <MaterialIcons name="person-outline" size={20} color={primary} />
-          <Text style={styles.detailsCtaText}>View Full Distributor Profile</Text>
-          <MaterialIcons name="arrow-forward-ios" size={14} color={primary} />
-        </TouchableOpacity> */}
-
       </ScrollView>
     </SafeAreaView>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: background,
+    backgroundColor: "#f5f5f5",
   },
   content: {
     paddingBottom: 32,
@@ -311,7 +300,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 14,
     borderWidth: 1,
-    borderColor: border,
+    borderColor: "#e5e7eb",
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.04,
@@ -322,7 +311,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: `${primary}15`,
+    backgroundColor: 'rgba(29, 78, 216, 0.08)',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -330,7 +319,7 @@ const styles = StyleSheet.create({
   infoAvatarText: {
     fontSize: 18,
     fontWeight: '700',
-    color: primary,
+    color: "#1d4ed8",
   },
   infoDetails: {
     flex: 1,
@@ -338,7 +327,7 @@ const styles = StyleSheet.create({
   infoName: {
     fontSize: 16,
     fontWeight: '600',
-    color: text.primary,
+    color: "#111827",
     marginBottom: 3,
   },
   infoMeta: {
@@ -347,7 +336,7 @@ const styles = StyleSheet.create({
   },
   infoMetaText: {
     fontSize: 12,
-    color: text.tertiary,
+    color: "#9ca3af",
     marginLeft: 3,
     marginRight: 2,
   },
@@ -355,7 +344,7 @@ const styles = StyleSheet.create({
     width: 3,
     height: 3,
     borderRadius: 1.5,
-    backgroundColor: text.tertiary,
+    backgroundColor: "#9ca3af",
     marginHorizontal: 6,
   },
 
@@ -363,7 +352,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: text.primary,
+    color: "#111827",
     marginHorizontal: 16,
     marginTop: 24,
     marginBottom: 12,
@@ -402,12 +391,12 @@ const styles = StyleSheet.create({
   actionTileTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: text.primary,
+    color: "#111827",
     marginBottom: 4,
   },
   actionTileDesc: {
     fontSize: 12,
-    color: text.secondary,
+    color: "#6b7280",
     lineHeight: 16,
   },
 
@@ -420,15 +409,15 @@ const styles = StyleSheet.create({
     marginTop: 24,
     paddingVertical: 14,
     borderRadius: 14,
-    backgroundColor: `${primary}08`,
+    backgroundColor: 'rgba(29, 78, 216, 0.03)',
     borderWidth: 1,
-    borderColor: `${primary}20`,
+    borderColor: 'rgba(29, 78, 216, 0.12)',
   },
   detailsCtaText: {
     flex: 1,
     marginLeft: 10,
     fontSize: 14,
     fontWeight: '600',
-    color: primary,
+    color: "#1d4ed8",
   },
 });

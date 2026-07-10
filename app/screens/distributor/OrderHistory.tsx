@@ -6,8 +6,8 @@ import { useLocalSearchParams } from "expo-router";
 import { Response } from "@/lib/types/types";
 import { useState } from "react";
 import { formatPrice } from "@/lib/formatters/formatter";
-import { secondary } from "@/constants/Colors";
 import TabBar from "@/components/ui/layout/TabBar";
+import { Theme, useAppTheme } from "@/constants/Theme";
 import { ShoppingBagOpen, Receipt, Package } from "phosphor-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -41,6 +41,8 @@ interface OrderResponse extends Response {
 }
 
 export default function OrderHistory() {
+  const { colors, mode } = useAppTheme();
+  const isDark = mode === 'dark';
   const { distributorId } = useLocalSearchParams();
   const [refreshing, setRefreshing] = useState(false);
 
@@ -70,12 +72,12 @@ export default function OrderHistory() {
 //   if(data) console.log(data.data[0].AdminOrderItems);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <TabBar title="ORDER HISTORY" />
 
       {isLoading && !refreshing ? (
         <View style={styles.loader}>
-          <ActivityIndicator size="large" color="#4F46E5" />
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : (
         <ScrollView
@@ -84,23 +86,23 @@ export default function OrderHistory() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              tintColor="#4F46E5"
+              tintColor={colors.primary}
             />
           }
         >
           {orders.length === 0 ? (
             <View style={styles.emptyState}>
-              <ShoppingBagOpen size={48} color="#E5E7EB" weight="duotone" />
-              <Text style={styles.emptyText}>No orders found</Text>
+              <ShoppingBagOpen size={48} color={colors.text.muted} weight="duotone" />
+              <Text style={[styles.emptyText, { color: colors.text.secondary }]}>No orders found</Text>
             </View>
           ) : (
             orders.map((order) => (
-              <View key={order.id} style={styles.orderCard}>
+              <View key={order.id} style={[styles.orderCard, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: isDark ? 1 : 0 }]}>
                 {/* Order Header */}
                 <View style={styles.orderHeader}>
                   <View style={styles.orderMeta}>
-                    <Text style={styles.orderId}>ORDER #{order.id.slice(0, 8).toUpperCase()}</Text>
-                    <Text style={styles.orderDate}>
+                    <Text style={[styles.orderId, { color: colors.text.primary }]}>ORDER #{order.id.slice(0, 8).toUpperCase()}</Text>
+                    <Text style={[styles.orderDate, { color: colors.text.secondary }]}>
                       {new Date(order.createdAt).toLocaleDateString('en-US', {
                         day: 'numeric',
                         month: 'short',
@@ -126,67 +128,67 @@ export default function OrderHistory() {
                 </View>
 
                 {/* Order Items */}
-                <View style={styles.itemsContainer}>
+                <View style={[styles.itemsContainer, { borderTopColor: colors.border }]}>
                   {order.AdminOrderItems.slice(0, 2).map((item) => (
                     <View key={item.id} style={styles.itemRow}>
                       <Image
                         source={{ uri: item.product.productImg || "https://via.placeholder.com/150" }}
-                        style={styles.itemImage}
+                        style={[styles.itemImage, { backgroundColor: isDark ? '#1e293b' : '#F3F4F6' }]}
                         resizeMode="cover"
                       />
                       <View style={styles.itemDetails}>
-                        <Text style={styles.itemName} numberOfLines={1}>
+                        <Text style={[styles.itemName, { color: colors.text.primary }]} numberOfLines={1}>
                           {item.product.name}
                         </Text>
                         <View style={styles.itemMeta}>
-                          <Text style={styles.itemQuantity}>
-                            {item.quantity} × {(item.price)}
+                          <Text style={[styles.itemQuantity, { color: colors.text.secondary }]}>
+                            {item.quantity} × {item.price}
                           </Text>
-                          <Text style={styles.itemTotal}>
-                            {(item.quantity * item.price)}
+                          <Text style={[styles.itemTotal, { color: colors.text.primary }]}>
+                            {item.quantity * item.price}
                           </Text>
                         </View>
                       </View>
                     </View>
                   ))}
                   {order.AdminOrderItems.length > 2 && (
-                    <Text style={styles.moreItems}>
+                    <Text style={[styles.moreItems, { color: colors.text.muted }]}>
                       +{order.AdminOrderItems.length - 2} more items
                     </Text>
                   )}
                 </View>
 
                 {/* Order Summary */}
-                <View style={styles.orderSummary}>
+                <View style={[styles.orderSummary, { borderTopColor: colors.border }]}>
                   <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>Total Items</Text>
-                    <Text style={styles.summaryValue}>
+                    <Text style={[styles.summaryLabel, { color: colors.text.secondary }]}>Total Items</Text>
+                    <Text style={[styles.summaryValue, { color: colors.text.primary }]}>
                       {order.AdminOrderItems.length}
                     </Text>
                   </View>
                   <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>Total Quantity</Text>
-                    <Text style={styles.summaryValue}>
+                    <Text style={[styles.summaryLabel, { color: colors.text.secondary }]}>Total Quantity</Text>
+                    <Text style={[styles.summaryValue, { color: colors.text.primary }]}>
                       {order.AdminOrderItems.reduce((sum, item) => sum + item.quantity, 0)}
                     </Text>
                   </View>
                 </View>
 
                 {/* Order Footer */}
-                <View style={styles.orderFooter}>
+                <View style={[styles.orderFooter, { borderTopColor: colors.border }]}>
                   <View style={styles.totalContainer}>
-                    <Text style={styles.totalLabel}>Total Amount</Text>
-                    <Text style={styles.orderTotal}>
-                      {(order.totalPrice)}
+                    <Text style={[styles.totalLabel, { color: colors.text.secondary }]}>Total Amount</Text>
+                    <Text style={[styles.orderTotal, { color: colors.primary }]}>
+                      {order.totalPrice}
                     </Text>
                   </View>
                   {order.paymentProofUrl && (
                     <TouchableOpacity 
-                      style={styles.proofButton}
+                      style={[styles.proofButton, { borderColor: colors.primary, backgroundColor: isDark ? 'rgba(79, 70, 229, 0.15)' : 'rgba(79, 70, 229, 0.05)' }]}
                       onPress={() => order.paymentProofUrl && handleProof(order.paymentProofUrl)}
                     >
-                      <Receipt size={16} color="#4F46E5" />
-                      <Text style={styles.proofButtonText}>View Proof</Text>
+                      <Receipt size={16} color={colors.primary} />
+                      <Text style={[styles.proofButtonText, { color: colors.primary }]}>View Proof</Text>
                     </TouchableOpacity>
                   )}
                 </View>
@@ -202,7 +204,7 @@ export default function OrderHistory() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: secondary,
+    backgroundColor: "#e0e7ff",
   },
   loader: {
     flex: 1,
