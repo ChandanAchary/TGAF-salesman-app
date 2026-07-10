@@ -151,8 +151,37 @@ export function useAnalytics(
         }
 
         const activeCount = filteredTeam.filter(t => t.status === "Present" || t.status === "Late").length;
+        
+        // Sum values for summary cards dynamically based on the filtered team members
+        const totalSales = filteredTeam.reduce((acc, curr) => acc + curr.sales, 0);
+        const totalCollections = filteredTeam.reduce((acc, curr) => acc + curr.collection, 0);
+        const totalVisits = filteredTeam.reduce((acc, curr) => acc + curr.visits, 0);
+        const avgTargetAchievement = filteredTeam.length > 0
+          ? Math.round(filteredTeam.reduce((acc, curr) => acc + curr.targetAchievement, 0) / filteredTeam.length)
+          : 0;
+
         const updatedSummary = {
           ...baseMockData.summary,
+          sales: {
+            value: formatPrice(totalSales),
+            growth: baseMockData.summary.sales.growth,
+            trend: baseMockData.summary.sales.trend
+          },
+          collection: {
+            value: formatPrice(totalCollections),
+            growth: baseMockData.summary.collection.growth,
+            trend: baseMockData.summary.collection.trend
+          },
+          retailersVisited: {
+            value: String(totalVisits),
+            growth: baseMockData.summary.retailersVisited.growth,
+            trend: baseMockData.summary.retailersVisited.trend
+          },
+          targetAchievement: {
+            value: `${avgTargetAchievement}%`,
+            growth: baseMockData.summary.targetAchievement.growth,
+            trend: baseMockData.summary.targetAchievement.trend
+          },
           workingEmployees: {
             value: String(activeCount),
             growth: baseMockData.summary.workingEmployees?.growth ?? 0,
