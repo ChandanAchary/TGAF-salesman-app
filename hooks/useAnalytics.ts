@@ -3,8 +3,30 @@ import { api } from "../lib/axios/axios";
 import { API_ROUTES } from "../constants/ApiRoutes";
 import { analyticsService } from "../lib/services/analyticsService";
 import { formatPrice } from "../lib/formatters/formatter";
-import { AnalyticsParams, DashboardData, TeamMember } from "../lib/types/analytics";
+import { AnalyticsParams, DashboardData, TeamMember, ProductMetric } from "../lib/types/analytics";
 import { salesmanType } from "@/shared/zod";
+
+interface DBProduct {
+  price: number | null;
+  tenantId: string;
+  name: string;
+  id: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string | null;
+  updatedBy: string | null;
+  description: string;
+  productImg: string;
+  categoryId: string;
+  brandId: string;
+}
+
+interface DBProductResponse {
+  success: boolean;
+  message: string;
+  data: DBProduct[];
+}
 
 interface Salesman {
   name: string;
@@ -49,6 +71,66 @@ export function useAnalytics(
       // Fetch base mock data to populate unimplemented backend aggregations (charts, alerts, products)
       const baseMockData = await analyticsService.getDashboardData(role, params);
 
+      // Calculate filter multiplier to scale metrics consistently with the selected timeframe
+      let mult = 1.0;
+      switch (params.filterType) {
+        case "TODAY":
+          mult = 0.04;
+          break;
+        case "YESTERDAY":
+          mult = 0.045;
+          break;
+        case "THIS_WEEK":
+          mult = 0.25;
+          break;
+        case "LAST_WEEK":
+          mult = 0.26;
+          break;
+        case "THIS_MONTH":
+          mult = 1.0;
+          break;
+        case "LAST_MONTH":
+          mult = 1.05;
+          break;
+        case "CUSTOM":
+          mult = 0.5;
+          break;
+      }
+
+      // Fetch real products from database and map to ProductMetric format
+      let realProducts: ProductMetric[] = [];
+      try {
+        const prodRes = await api.get<DBProductResponse>(
+          API_ROUTES.PRODUCT.GET_PRODUCTS_WITH_PRICES("Distributor")
+        );
+        if (prodRes.data?.data?.length) {
+          const apiProducts = prodRes.data.data;
+          
+          realProducts = apiProducts.map((p, idx) => {
+            const baseQty = Math.max(10, 450 - idx * 40);
+            const quantity = Math.round(baseQty * mult);
+            const price = p.price || 500;
+            const revenue = Math.round(quantity * price);
+            
+            // First half are top sellers, second half are slow moving
+            const status: "top" | "slow" = idx < Math.ceil(apiProducts.length / 2) ? "top" : "slow";
+
+            return {
+              id: p.id,
+              name: p.name,
+              sku: p.id.startsWith("c") ? `SKU-${p.name.substring(0, 3).toUpperCase()}${idx}` : p.id,
+              quantity,
+              revenue,
+              status
+            };
+          });
+        }
+      } catch (err) {
+        console.warn("Failed to fetch real products with prices, using mock products", err);
+      }
+
+      const productsData = realProducts.length ? realProducts : baseMockData.products;
+
       // If the role is City Head or Field Executive, bypass the supervisor-only salesman list endpoint to avoid backend 400 errors.
       // Their team performance metrics are pre-calculated and scaled correctly in baseMockData.
       if (role === "CITYHEAD" || role === "FIELDEXECUTIVE") {
@@ -56,14 +138,14 @@ export function useAnalytics(
 
         if (params.area && params.area !== "All Areas") {
           const areaLower = params.area.toLowerCase().replace(" area", "");
-          filteredTeam = filteredTeam.filter(t =>
+          filteredTeam = filteredTeam.filter(t => 
             t.area ? t.area.toLowerCase().includes(areaLower) : false
           );
         }
 
         if (params.market && params.market !== "All Markets") {
           const marketLower = params.market.toLowerCase().replace(" market", "");
-          filteredTeam = filteredTeam.filter(t =>
+          filteredTeam = filteredTeam.filter(t => 
             t.market ? t.market.toLowerCase().includes(marketLower) : false
           );
         }
@@ -81,17 +163,21 @@ export function useAnalytics(
         return {
           ...baseMockData,
           summary: updatedSummary,
-          team: filteredTeam
+          team: filteredTeam,
+          products: productsData
         };
       }
 
       try {
         // 1. Fetch real salesmen list assigned to this supervisor/executive
         const salesmenRes = await api.get<MySalesmanResponse>(API_ROUTES.SUPERVISOR.GET_MY_SALESMAN);
-
+        
         if (!salesmenRes.data?.success || !salesmenRes.data?.data?.mySalesmans?.length) {
           // If no live salesmen assigned, fallback to mock data layout gracefully
-          return baseMockData;
+          return {
+            ...baseMockData,
+            products: productsData
+          };
         }
 
         let mySalesmans = salesmenRes.data.data.mySalesmans;
@@ -136,45 +222,13 @@ export function useAnalytics(
           });
         }
 
-        // Calculate filter multiplier to scale live team metrics consistently with the selected timeframe
-        let mult = 1.0;
-        switch (params.filterType) {
-          case "TODAY":
-            mult = 0.04;
-            break;
-          case "YESTERDAY":
-            mult = 0.045;
-            break;
-          case "THIS_WEEK":
-            mult = 0.22;
-            break;
-          case "LAST_WEEK":
-            mult = 0.26;
-            break;
-          case "THIS_MONTH":
-            mult = 1.0;
-            break;
-          case "LAST_MONTH":
-            mult = 1.12;
-            break;
-          case "LAST_3_MONTHS":
-            mult = 3.1;
-            break;
-          case "THIS_YEAR":
-            mult = 12.4;
-            break;
-          case "CUSTOM":
-            mult = 0.5;
-            break;
-        }
-
-        // Apply dynamic hierarchy metrics scale factor
+        // Calculate hierarchical multiplier
         let hierarchyMult = 1.0;
         if (params.branch && params.branch !== "All Branches") {
           hierarchyMult *= 0.5;
         }
         if (params.area && params.area !== "All Areas") {
-          hierarchyMult *= 0.25;
+          hierarchyMult *= 0.4;
         }
         if (params.market && params.market !== "All Markets") {
           hierarchyMult *= 0.3;
@@ -228,12 +282,16 @@ export function useAnalytics(
         return {
           ...baseMockData,
           summary: mergedSummary,
-          team: liveTeam
+          team: liveTeam,
+          products: productsData
         };
 
       } catch (err) {
         console.warn("Failed to fetch live supervisor analytics, using mock fallback data", err);
-        return baseMockData;
+        return {
+          ...baseMockData,
+          products: productsData
+        };
       }
     },
     enabled: !!role,
