@@ -1,5 +1,7 @@
 import DistributorEditModal from "@/components/ui/distributor/distributorEditModal";
 import TabBar from "@/components/ui/layout/TabBar";
+import ModalView from "@/components/ui/layout/Modal";
+import { OtpInput } from "@/components/ui/layout/OtpInput";
 import { API_ROUTES } from "@/constants/ApiRoutes";
 import { api } from "@/lib/axios/axios";
 import { errorHandler } from "@/lib/axios/errorHandler";
@@ -7,6 +9,8 @@ import { ErrorResponse, Response } from "@/lib/types/types";
 import { Theme, useAppTheme } from "@/constants/Theme";
 import { UpdateDistirbutorDetailsParams } from "@/shared/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { VerifyDistributorOtpParams } from "@/shared/models/distributor.modal";
+import { WarningCircleIcon } from "phosphor-react-native";
 import { useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, View, Text, ActivityIndicator, Image, Modal, TextInput, TouchableOpacity, Pressable } from "react-native";
@@ -86,6 +90,9 @@ export default function DistributorDetails() {
   const isDark = mode === 'dark';
   const { distId } = useLocalSearchParams();
   const [modalVisible, setModalVisible] = useState(false);
+  const [otpModalOpen, setOtpModalOpen] = useState(false);
+  const [otp, setOtp] = useState<string | null>(null);
+  const [isVerifiedDistributor, setIsVerifiedDistributor] = useState(false);
 
   const distributorDetailsQuery = useQuery({
     queryKey: ["distributorDetails", distId],
@@ -95,11 +102,55 @@ export default function DistributorDetails() {
     }
   })
 
+  const sendVerificationOtpMutation = useMutation({
+    mutationFn: async () => {
+      const res = await api.post(API_ROUTES.DISTRIBUTOR.SEND_DISTRIBUTOR_VERIFICATION_OTP(distId as string));
+      return res.data;
+    },
+    onSuccess: () => {
+      setOtpModalOpen(true);
+    },
+    onError: (error: ErrorResponse) => {
+      alert(error.response.data.message);
+    }
+  })
+
+  const verifyOtpMutation = useMutation({
+    mutationFn: async (data: VerifyDistributorOtpParams) => {
+      const res = await api.post(API_ROUTES.DISTRIBUTOR.VERIFY_DISTRIBUTOR_OTP, data);
+      return res.data;
+    },
+    onSuccess: () => {
+      setIsVerifiedDistributor(true);
+      setOtpModalOpen(false);
+      distributorDetailsQuery.refetch();
+    },
+    onError: (error: ErrorResponse) => {
+      alert(error.response.data.message);
+    }
+  })
+
   useEffect(() => {
     if (distributorDetailsQuery.isError) {
       errorHandler(distributorDetailsQuery.error);
     }
   }, [distributorDetailsQuery.isError])
+
+  useEffect(() => {
+    if (distributorDetailsQuery.data?.data) {
+      setIsVerifiedDistributor(distributorDetailsQuery.data.data.virified);
+    }
+  }, [distributorDetailsQuery.data?.data?.virified])
+
+  const handleVerification = () => {
+    sendVerificationOtpMutation.mutate();
+  }
+
+  const handleVerifyOtp = () => {
+    if (otp) {
+      verifyOtpMutation.mutate({ distributorId: distId as string, otp });
+    }
+  }
 
   const distributor = distributorDetailsQuery.data?.data;
 
@@ -153,6 +204,28 @@ export default function DistributorDetails() {
 
           {/* Divider */}
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
+
+          {/* verification details */}
+          {
+            isVerifiedDistributor ? null : (
+              <TouchableOpacity
+                style={[styles.section, { backgroundColor: "rgba(255, 120, 120, 0.2)", borderColor: "rgba(255, 120, 120, 0.5)", marginBottom: 16 }]}
+                onPress={handleVerification}
+                disabled={sendVerificationOtpMutation.isPending}
+              >
+                <View style={[styles.sectionHeader, { justifyContent: "center", marginBottom: 0 }]}>
+                  {sendVerificationOtpMutation.isPending ? (
+                    <ActivityIndicator color="red" size="small" />
+                  ) : (
+                    <WarningCircleIcon size={20} color="red" />
+                  )}
+                  <Text style={[styles.sectionTitle, { color: "red", marginLeft: 8, fontFamily: Theme.typography.fontFamily.bold }]}>
+                    {sendVerificationOtpMutation.isPending ? 'Sending...' : 'Click To Verify Distributor'}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            )
+          }
 
           {/* Contact Section */}
           <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.border }]}>
@@ -355,6 +428,27 @@ export default function DistributorDetails() {
         setModalVisible={setModalVisible}
         refetch={distributorDetailsQuery.refetch}
       />
+
+      <ModalView
+        isReceiveModalVisible={otpModalOpen}
+        setIsReceiveModalVisible={setOtpModalOpen}
+      >
+        <View style={{ gap: 16 }}>
+          <Text style={{ fontSize: 16, color: colors.text.primary, fontFamily: Theme.typography.fontFamily.bold }}>Enter Otp</Text>
+          <OtpInput setOtp={setOtp} />
+          <TouchableOpacity
+            style={{ backgroundColor: colors.primary, padding: 12, borderRadius: 8, alignItems: 'center' }}
+            onPress={handleVerifyOtp}
+            disabled={verifyOtpMutation.isPending}
+          >
+            {verifyOtpMutation.isPending ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text style={{ color: 'white', fontWeight: '600', fontFamily: Theme.typography.fontFamily.medium }}>Verify</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </ModalView>
     </SafeAreaView>
   )
 }

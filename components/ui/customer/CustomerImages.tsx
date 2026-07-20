@@ -1,14 +1,16 @@
 import { API_ROUTES } from '@/constants/ApiRoutes';
 import { api } from '@/lib/axios/axios';
-import { UpdateCustomerImageParams } from '@/shared/models/customer';
+import { UpdateCustomerImageParams, VerifyCustomerOtpParams } from '@/shared/models/customer';
 import { useMutation } from '@tanstack/react-query';
-import { Camera, CaretLeft, CaretRight, Image as ImageIcon } from 'phosphor-react-native';
+import { Camera, CheckFatIcon, WarningIcon } from 'phosphor-react-native';
 import { useEffect, useState } from 'react';
-import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CameraModal } from '../CameraModel';
 import { ErrorResponse } from '@/lib/types/types';
 import { Theme } from '@/constants/Theme';
+import ModalView from '../layout/Modal';
+import { OtpInput } from '../layout/OtpInput';
 
 interface CustomerImagesProps {
   customerId: string;
@@ -17,18 +19,51 @@ interface CustomerImagesProps {
   refetchCustomer: () => void;
   name?: string;
   createdAt?: Date;
+  isVerified: boolean;
 }
 
 type ImageViewType = 'inner' | 'outer';
 
 const { width } = Dimensions.get('window');
 
-export default function CustomerImages({ customerId, innerImageUrl, outerImageUrl, refetchCustomer, name, createdAt }: CustomerImagesProps) {
+export default function CustomerImages({ customerId, innerImageUrl, outerImageUrl, refetchCustomer, name, createdAt, isVerified }: CustomerImagesProps) {
   const [currentView, setCurrentView] = useState<ImageViewType>('outer');
   const [updatedInnerImageUrl, setUpdatedInnerImageUrl] = useState<string | null>(null);
   const [updatedOuterImageUrl, setUpdatedOuterImageUrl] = useState<string | null>(null);
   const [openCameraModalForInnerImage, setOpenCameraModalForInnerImage] = useState(false);
   const [openCameraModalForOuterImage, setOpenCameraModalForOuterImage] = useState(false);
+  const [isOtpVerificationSent, setIsOtpVerificationSent] = useState<boolean>(false);
+  const [isVerifiedCustomer, setIsVerifiedCustomer] = useState<boolean>(isVerified);
+  const [otpModalOpen, setOtpModalOpen] = useState(false);
+  const [otp, setOtp] = useState<string | null>(null);
+
+  const verifyCustomerMessage = useMutation({
+    mutationFn: async () => {
+      const res = await api.post(API_ROUTES.CUSTOMER.SEND_CUSTOMER_VERIFICATION_OTP(customerId));
+      return res.data;
+    },
+    onSuccess: () => {
+      setIsOtpVerificationSent(true);
+      setOtpModalOpen(true);
+    },
+    onError: (error: ErrorResponse) => {
+      alert(error.response.data.message);
+    }
+  })
+
+  const verifyCustomerOtp = useMutation({
+    mutationFn: async (data: VerifyCustomerOtpParams) => {
+      const res = await api.post(API_ROUTES.CUSTOMER.VERIFY_CUSTOMER_OTP, data);
+      return res.data;
+    },
+    onSuccess: () => {
+      setIsVerifiedCustomer(true);
+      setOtpModalOpen(false);
+    },
+    onError: (error: ErrorResponse) => {
+      alert(error.response.data.message);
+    }
+  })
 
   const updateCustomerImageMutation = useMutation({
     mutationFn: async (data: UpdateCustomerImageParams) => {
@@ -79,6 +114,16 @@ export default function CustomerImages({ customerId, innerImageUrl, outerImageUr
     }
   };
 
+  const handleVerification = () => {
+    verifyCustomerMessage.mutate();
+  }
+
+  const handleVerifyOtp = () => {
+    if (otp) {
+      verifyCustomerOtp.mutate({ customerId, otp });
+    }
+  }
+
   return (
     <View style={styles.container}>
       <CameraModal
@@ -91,6 +136,27 @@ export default function CustomerImages({ customerId, innerImageUrl, outerImageUr
         setOpen={setOpenCameraModalForOuterImage}
         setImageUrl={(url) => setUpdatedOuterImageUrl(url)}
       />
+
+      <ModalView
+        isReceiveModalVisible={otpModalOpen}
+        setIsReceiveModalVisible={setOtpModalOpen}
+      >
+        <View style={{ gap: 16 }}>
+          <Text style={{ fontSize: 16, fontFamily: Theme.typography.fontFamily.bold }}>Enter Otp</Text>
+          <OtpInput setOtp={setOtp} />
+          <TouchableOpacity
+            style={{ backgroundColor: Theme.colors.primary, padding: 12, borderRadius: 8, alignItems: 'center' }}
+            onPress={handleVerifyOtp}
+            disabled={verifyCustomerOtp.isPending}
+          >
+            {verifyCustomerOtp.isPending ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text style={{ color: 'white', fontWeight: '600', fontFamily: Theme.typography.fontFamily.medium }}>Verify</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </ModalView>
 
       <View style={styles.imageContainer}>
         {currentImage ? (
@@ -123,12 +189,35 @@ export default function CustomerImages({ customerId, innerImageUrl, outerImageUr
             </View>
           </View>
 
-          <TouchableOpacity style={styles.cameraButton} onPress={handleCameraOpen}>
-            <Camera size={22} color="white" weight="fill" />
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', gap: 12 }}>
+            {
+              isVerifiedCustomer ?
+                (
+                  <View style={{ ...styles.cameraButton, backgroundColor: 'rgba(120, 255, 154, 0.5)' }}>
+                    <CheckFatIcon size={22} color="white" weight="fill" />
+                  </View>
+                )
+                :
+                (
+                  <TouchableOpacity style={{ ...styles.cameraButton, backgroundColor: 'red', borderColor: "red" }} onPress={handleVerification} disabled={verifyCustomerMessage.isPending}>
+                    {verifyCustomerMessage.isPending ? (
+                      <ActivityIndicator color="white" size="small" />
+                    ) : (
+                      <>
+                        <WarningIcon size={22} color="pink" weight='bold' />
+                        <Text style={{ color: 'white', fontSize: 10, fontWeight: '600' }}>verify</Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                )
+            }
+            <TouchableOpacity style={styles.cameraButton} onPress={handleCameraOpen}>
+              <Camera size={22} color="white" weight="fill" />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
-    </View>
+    </View >
   );
 }
 

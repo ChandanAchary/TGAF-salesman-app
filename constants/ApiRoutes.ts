@@ -43,6 +43,9 @@ export const API_ROUTES = {
     GET_VISITED_CUSTOMERS: `${BASE_URL}/api/salesman/get/route/vistied/customers`,
     GET_ORDERED_CUSTOMERS: `${BASE_URL}/api/salesman/get/route/ordered/customers`,
     UPDATE_CUSTOMER_IMAGE: `${BASE_URL}/api/salesman/update/customer/images`,
+    SEND_CUSTOMER_VERIFICATION_OTP: (customerId: string) =>
+      `${BASE_URL}/api/salesman/send/customer/verification/message/${customerId}`,
+    VERIFY_CUSTOMER_OTP: `${BASE_URL}/api/salesman/verify/customer/verification/otp`,
   },
   ROUTE: {
     GET_ROUTE: `${BASE_URL}/api/get/route`,
@@ -107,6 +110,9 @@ export const API_ROUTES = {
     CREATE_RECONCILIATION: `${BASE_URL}/api/salesman-distributor/create/reconciliation`,
     GET_RECONCILIATIONS: (pickStockId: string) => `${BASE_URL}/api/salesman-distributor/get/reconciliations/${pickStockId}`,
     APPROVE_RECONCILIATION: (reconId: string) => `${BASE_URL}/api/salesman-distributor/approve/reconciliation/${reconId}`,
+    SEND_DISTRIBUTOR_VERIFICATION_OTP: (customerId: string) =>
+      `${BASE_URL}/api/salesman-distributor/send/distributor/verification/message/${customerId}`,
+    VERIFY_DISTRIBUTOR_OTP: `${BASE_URL}/api/salesman-distributor/verify/distributor/verification/otp`,
   },
   ACTIVITY: {
     START_LOG: `${BASE_URL}/api/salesman/start/activity/log`,

@@ -113,6 +113,21 @@ export const createHierarchyItemsInput = z.object({
 
 export type CreateHierarchyItemsParams = z.infer<typeof createHierarchyItemsInput>;
 
+export const moveHierarchyItemInput = z.object({
+  itemId: z.string().min(1),
+  newParentId: z.string().nullable(),
+  newLevelNames: z.record(z.string(), z.string()).optional(),
+});
+
+export type MoveHierarchyItemParams = z.infer<typeof moveHierarchyItemInput>;
+
+export const renameHierarchyLevelInput = z.object({
+  levelId: z.string().min(1),
+  name: z.string().min(1),
+});
+
+export type RenameHierarchyLevelParams = z.infer<typeof renameHierarchyLevelInput>;
+
 export const signupSalesmanInput = z.object({
   tenantId: z.string().min(1),
   password: z.string().min(8),
@@ -535,8 +550,7 @@ export type VerifyOtpParams = z.infer<typeof verifyOtpSchema>;
 
 export const InvoiceItemSchema = z.object({
   quantity: z.number().int().positive("Quantity must be greater than zero"),
-
-  price: z.number().nonnegative("Price cannot be negative"),
+  // price: z.number().nonnegative("Price cannot be negative"),
 });
 
 export const CreateInvoiceSchema = z.object({

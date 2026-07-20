@@ -14,20 +14,26 @@ import CustomerCollectionsSection from "@/components/ui/customer/CustomerCollect
 import { ArrowLeft, ShoppingCart, CurrencyNgnIcon } from "phosphor-react-native";
 
 interface Customer {
+  name: string;
   id: string;
   approved: boolean;
-  isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
+  isActive: boolean;
   createdBy: string | null;
   updatedBy: string | null;
   tenantId: string;
-  name: string;
   phone: string;
-  innerImageUrl: string;
-  outerImageUrl: string;
+  virified: boolean;
+  marketName: string;
+  address: string;
   latitude: number;
   longitude: number;
+  hierarchyItemId: string;
+  customerTypeId: string;
+  bvnNumber: string | null;
+  innerImageUrl: string;
+  outerImageUrl: string;
 }
 
 interface CustomerResponse {
@@ -75,6 +81,7 @@ export default function VisitCustomer() {
             refetchCustomer={refetchCustomer}
             name={customer?.name}
             createdAt={customer?.createdAt}
+            isVerified={customer?.virified || false}
           />
           {/* Back Button Overlay */}
           <SafeAreaView style={styles.safeAreaOverlay}>

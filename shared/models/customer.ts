@@ -7,3 +7,10 @@ export const UpdateCustomerImageSchema = z.object({
 })
 
 export type UpdateCustomerImageParams = z.infer<typeof UpdateCustomerImageSchema>
+
+export const VerifyCustomerOtpSchema = z.object({
+    customerId: z.string().min(1, "Customer id is required"),
+    otp: z.string().min(1, "OTP is required")
+})
+
+export type VerifyCustomerOtpParams = z.infer<typeof VerifyCustomerOtpSchema>
